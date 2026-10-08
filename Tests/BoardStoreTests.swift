@@ -1,6 +1,4 @@
 import Foundation
-import AppKit
-import UniformTypeIdentifiers
 import XCTest
 @testable import DailyBoard
 
@@ -43,6 +41,26 @@ final class BoardStoreTests: XCTestCase {
         XCTAssertEqual(store.tasks(in: second, completed: false).map(\.id), [c])
     }
 
+    func testPlaceTasksReordersWithinColumnAndAppends() {
+        let store = BoardStore(inMemory: true)
+        let board = tryID(store.createBoard("Доска"))
+        let column = tryID(store.createColumn(boardID: board, title: "Сегодня"))
+        let first = tryID(store.createTask(columnID: column, title: "Первое"))
+        let second = tryID(store.createTask(columnID: column, title: "Второе"))
+        let third = tryID(store.createTask(columnID: column, title: "Третье"))
+
+        store.placeTasks([first], to: column, before: third)
+        XCTAssertEqual(store.tasks(in: column, completed: false).map(\.id), [first, third, second])
+
+        store.placeTasks([third], to: column, before: nil)
+        XCTAssertEqual(store.tasks(in: column, completed: false).map(\.id), [first, second, third])
+
+        let otherColumn = tryID(store.createColumn(boardID: board, title: "Вчера"))
+        store.placeTasks([first, second], to: otherColumn, before: nil)
+        XCTAssertEqual(store.tasks(in: otherColumn, completed: false).map(\.id), [first, second])
+        XCTAssertEqual(store.tasks(in: column, completed: false).map(\.id), [third])
+    }
+
     func testDataSurvivesReopeningStore() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -59,23 +77,6 @@ final class BoardStoreTests: XCTestCase {
         XCTAssertNil(reopened.startupError)
         XCTAssertEqual(reopened.boards.map(\.id), [board])
         XCTAssertEqual(reopened.tasks(in: column, completed: false).map(\.id), [task])
-    }
-
-    func testDragPayloadUsesSystemTextAndLocalType() {
-        let ids = [UUID(), UUID()]
-        let provider = TaskDragPayload.itemProvider(for: ids)
-        XCTAssertTrue(provider.hasItemConformingToTypeIdentifier(UTType.utf8PlainText.identifier))
-        XCTAssertTrue(provider.hasItemConformingToTypeIdentifier(TaskDragPayload.contentType.identifier))
-        XCTAssertTrue(provider.canLoadObject(ofClass: NSString.self))
-        let loaded = expectation(description: "Pasteboard data loads")
-        _ = provider.loadObject(ofClass: NSString.self) { object, error in
-            XCTAssertNil(error)
-            XCTAssertEqual(TaskDragPayload.decode(object as? String ?? ""), ids)
-            loaded.fulfill()
-        }
-        wait(for: [loaded], timeout: 5)
-        XCTAssertEqual(TaskDragPayload.decode(TaskDragPayload.encode(ids)), ids)
-        XCTAssertNil(TaskDragPayload.decode("обычный текст"))
     }
 
     private func tryID(_ value: UUID?, file: StaticString = #filePath, line: UInt = #line) -> UUID {

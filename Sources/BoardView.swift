@@ -19,7 +19,11 @@ struct BoardView: View {
     @State private var showingArchive = false
     @State private var dropTargetColumnID: UUID?
     @State private var dropTargetTaskID: UUID?
-    @State private var activeDragIDs: [UUID]?
+    @State private var draggingIDs: [UUID] = []
+    @State private var dragTitle = ""
+    @State private var dragLocation: CGPoint?
+    @State private var columnFrames: [UUID: CGRect] = [:]
+    @State private var taskFrames: [UUID: CGRect] = [:]
     @State private var hoveredColumnID: UUID?
     @State private var hoveredTaskID: UUID?
     @State private var hoveredCheckboxID: UUID?
@@ -60,7 +64,22 @@ struct BoardView: View {
             if editorDraft != nil {
                 editorOverlay
             }
+            if let dragLocation, !draggingIDs.isEmpty {
+                Label(draggingIDs.count > 1 ? "\(draggingIDs.count) задач" : dragTitle, systemImage: "hand.draw")
+                    .font(.callout.weight(.medium))
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(.regularMaterial)
+                    .clipShape(RoundedRectangle(cornerRadius: 9))
+                    .shadow(color: .black.opacity(0.15), radius: 10, y: 4)
+                    .position(dragLocation)
+                    .allowsHitTesting(false)
+                    .zIndex(10)
+            }
         }
+        .coordinateSpace(name: "board")
+        .onPreferenceChange(ColumnFrameKey.self) { columnFrames = $0 }
+        .onPreferenceChange(TaskFrameKey.self) { taskFrames = $0 }
         .sheet(isPresented: $showingNewColumn) {
             NameSheet(title: "Новая колонка", initialName: "") { title in
                 if store.createColumn(boardID: board.id, title: title) != nil { showingNewColumn = false }
@@ -246,11 +265,10 @@ struct BoardView: View {
         .shadow(color: .black.opacity(hoveredColumnID == column.id ? 0.075 : 0.035), radius: hoveredColumnID == column.id ? 12 : 5, y: 3)
         .onHover { hoveredColumnID = $0 ? column.id : nil }
         .animation(.easeOut(duration: 0.16), value: hoveredColumnID == column.id)
-        .onDrop(of: [.utf8PlainText], isTargeted: Binding(
-            get: { dropTargetColumnID == column.id },
-            set: { dropTargetColumnID = $0 ? column.id : nil }
-        )) { providers in
-            acceptDrop(providers, into: column.id)
+        .background {
+            GeometryReader { geometry in
+                Color.clear.preference(key: ColumnFrameKey.self, value: [column.id: geometry.frame(in: .named("board"))])
+            }
         }
     }
 
@@ -290,7 +308,7 @@ struct BoardView: View {
     }
 
     private func taskView(_ task: TaskRecord, in column: ColumnRecord) -> some View {
-        HStack(alignment: .top, spacing: 0) {
+        HStack(alignment: .center, spacing: 0) {
             RoundedRectangle(cornerRadius: 2)
                 .fill(task.colorID == nil ? .clear : Pastel.color(task.colorID))
                 .frame(width: 5)
@@ -340,27 +358,22 @@ struct BoardView: View {
                 .strokeBorder(selectedIDs.contains(task.id) || dropTargetTaskID == task.id ? Color.accentColor : Color.primary.opacity(hoveredTaskID == task.id ? 0.2 : 0.07), lineWidth: selectedIDs.contains(task.id) || dropTargetTaskID == task.id ? 2 : 1)
         }
         .shadow(color: .black.opacity(hoveredTaskID == task.id ? 0.1 : 0), radius: 7, y: 2)
-        .onHover { hoveredTaskID = $0 ? task.id : nil }
+        .onHover { inside in
+            hoveredTaskID = inside ? task.id : nil
+            if inside { NSCursor.pointingHand.push() } else { NSCursor.pop() }
+        }
         .animation(.easeOut(duration: 0.15), value: hoveredTaskID == task.id)
         .contentShape(Rectangle())
-        .onDrag {
-            let ids = dragIDs(for: task)
-            activeDragIDs = ids
-            return TaskDragPayload.itemProvider(for: ids)
-        } preview: {
-            Label(dragIDs(for: task).count > 1 ? "\(dragIDs(for: task).count) задач" : task.title, systemImage: "hand.draw")
-                .font(.callout.weight(.medium))
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(.regularMaterial)
-                .clipShape(RoundedRectangle(cornerRadius: 9))
+        .background {
+            GeometryReader { geometry in
+                Color.clear.preference(key: TaskFrameKey.self, value: [task.id: geometry.frame(in: .named("board"))])
+            }
         }
-        .onDrop(of: [.utf8PlainText], isTargeted: Binding(
-            get: { dropTargetTaskID == task.id },
-            set: { dropTargetTaskID = $0 ? task.id : nil }
-        )) { providers in
-            acceptDrop(providers, into: column.id, before: task)
-        }
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 5, coordinateSpace: .named("board"))
+                .onChanged { value in updateDrag(task: task, at: value.location) }
+                .onEnded { value in finishDrag(at: value.location) }
+        )
         .contextMenu {
             Menu("Перенести") {
                 ForEach(boardColumns) { destination in
@@ -412,41 +425,39 @@ struct BoardView: View {
             .map(\.id)
     }
 
-    private func acceptDrop(_ providers: [NSItemProvider], into columnID: UUID, before target: TaskRecord? = nil) -> Bool {
-        guard let provider = providers.first(where: { $0.canLoadObject(ofClass: NSString.self) }) else { return false }
-        if provider.hasItemConformingToTypeIdentifier(TaskDragPayload.contentType.identifier),
-           let ids = activeDragIDs, !ids.isEmpty {
-            applyDrop(ids, into: columnID, before: target)
-            activeDragIDs = nil
-            return true
+    private func dragDestination(at point: CGPoint) -> (columnID: UUID, beforeTaskID: UUID?)? {
+        guard let column = boardColumns.first(where: { columnFrames[$0.id]?.contains(point) == true }) else { return nil }
+        let tasks = store.tasks(in: column.id, completed: false) + store.tasks(in: column.id, completed: true)
+        let before = tasks.first { task in
+            !draggingIDs.contains(task.id) && (taskFrames[task.id]?.midY ?? -.infinity) > point.y
         }
-        _ = provider.loadObject(ofClass: NSString.self) { object, _ in
-            guard let text = object as? String,
-                  let ids = TaskDragPayload.decode(text),
-                  !ids.isEmpty else { return }
-            DispatchQueue.main.async {
-                applyDrop(ids, into: columnID, before: target)
-                activeDragIDs = nil
-            }
-        }
-        return true
+        return (column.id, before?.id)
     }
 
-    private func applyDrop(_ ids: [UUID], into columnID: UUID, before target: TaskRecord?) {
+    private func updateDrag(task: TaskRecord, at point: CGPoint) {
+        if draggingIDs.isEmpty {
+            draggingIDs = dragIDs(for: task)
+            dragTitle = task.title
+        }
+        dragLocation = point
+        let destination = dragDestination(at: point)
+        dropTargetColumnID = destination?.columnID
+        dropTargetTaskID = destination?.beforeTaskID
+    }
+
+    private func finishDrag(at point: CGPoint) {
+        let destination = dragDestination(at: point)
         var transaction = Transaction()
         transaction.disablesAnimations = true
         withTransaction(transaction) {
-            if let target,
-               ids.count == 1,
-               ids[0] != target.id,
-               let moving = store.tasks.first(where: { $0.id == ids[0] }),
-               moving.columnID == columnID,
-               moving.isCompleted == target.isCompleted {
-                store.reorderTask(moving.id, before: target.id)
-            } else {
-                store.moveTasks(ids, to: columnID)
+            if let destination, !draggingIDs.isEmpty {
+                store.placeTasks(draggingIDs, to: destination.columnID, before: destination.beforeTaskID)
+                selectedIDs.removeAll()
             }
-            selectedIDs.removeAll()
+            draggingIDs = []
+            dragLocation = nil
+            dropTargetColumnID = nil
+            dropTargetTaskID = nil
         }
     }
 
@@ -635,5 +646,21 @@ struct HoverHighlight: ViewModifier {
             }
             .onHover { isHovered = $0 }
             .animation(.easeOut(duration: 0.15), value: isHovered)
+    }
+}
+
+private struct ColumnFrameKey: PreferenceKey {
+    static var defaultValue: [UUID: CGRect] { [:] }
+
+    static func reduce(value: inout [UUID: CGRect], nextValue: () -> [UUID: CGRect]) {
+        value.merge(nextValue()) { _, new in new }
+    }
+}
+
+private struct TaskFrameKey: PreferenceKey {
+    static var defaultValue: [UUID: CGRect] { [:] }
+
+    static func reduce(value: inout [UUID: CGRect], nextValue: () -> [UUID: CGRect]) {
+        value.merge(nextValue()) { _, new in new }
     }
 }

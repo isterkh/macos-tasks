@@ -2,6 +2,37 @@ import XCTest
 
 final class DailyBoardUITests: XCTestCase {
     @MainActor
+    func testReorderTasksInOneColumn() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-testing"]
+        app.launch()
+
+        app.buttons["Новая доска"].click()
+        let name = app.textFields["Название"]
+        XCTAssertTrue(name.waitForExistence(timeout: 5))
+        name.typeText("Доска")
+        app.buttons["Сохранить"].click()
+        app.buttons["Колонка"].click()
+        let columnName = app.textFields["Название"]
+        XCTAssertTrue(columnName.waitForExistence(timeout: 5))
+        columnName.typeText("Сегодня")
+        app.buttons["Сохранить"].click()
+
+        let quickTask = app.textFields["Быстрая задача"]
+        XCTAssertTrue(quickTask.waitForExistence(timeout: 5))
+        quickTask.click()
+        quickTask.typeText("Первое\nВторое\nТретье\n")
+        let first = app.staticTexts["Первое"]
+        let third = app.staticTexts["Третье"]
+        XCTAssertTrue(first.waitForExistence(timeout: 5))
+        XCTAssertTrue(third.waitForExistence(timeout: 5))
+        XCTAssertLessThan(third.frame.midY, first.frame.midY)
+        first.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+            .press(forDuration: 0.3, thenDragTo: third.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.2)))
+        XCTAssertLessThan(first.frame.midY, third.frame.midY)
+    }
+
+    @MainActor
     func testCreateBoardColumnAndTask() {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-testing"]

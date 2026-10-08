@@ -260,6 +260,45 @@ final class BoardStore: ObservableObject {
         }
     }
 
+    func placeTasks(_ ids: [UUID], to destinationID: UUID, before targetID: UUID?) {
+        transact { context in
+            let all = try allTasks(context)
+            let columns = try allColumns(context)
+            guard let destination = columns.first(where: { $0.id == destinationID }) else { throw StoreError.invalidDestination }
+            let chosenByID = Dictionary(uniqueKeysWithValues: all.filter { ids.contains($0.id) && $0.archivedAt == nil }.map { ($0.id, $0) })
+            let chosen = ids.compactMap { chosenByID[$0] }
+            guard !chosen.isEmpty, chosen.count == ids.count,
+                  chosen.allSatisfy({ $0.boardID == destination.boardID }) else { throw StoreError.invalidDestination }
+            let chosenIDs = Set(ids)
+            let oldGroups = Set(chosen.compactMap { task -> GroupKey? in
+                guard let columnID = task.columnID else { return nil }
+                return GroupKey(columnID: columnID, completed: task.isCompleted)
+            })
+            let target = all.first { $0.id == targetID && $0.columnID == destinationID && $0.archivedAt == nil && !chosenIDs.contains($0.id) }
+            let now = Date.now
+            for status in [false, true] {
+                let moved = chosen.filter { $0.isCompleted == status }
+                let remaining = all.filter { $0.columnID == destinationID && $0.archivedAt == nil && $0.isCompleted == status && !chosenIDs.contains($0.id) }
+                    .sorted { $0.position < $1.position }
+                let insertion = target?.isCompleted == status
+                    ? remaining.firstIndex(where: { $0.id == target?.id }) ?? remaining.count
+                    : remaining.count
+                var ordered = remaining
+                ordered.insert(contentsOf: moved, at: insertion)
+                for (index, task) in ordered.enumerated() {
+                    if task.position != index || task.columnID != destinationID {
+                        task.position = index
+                        task.columnID = destinationID
+                        task.updatedAt = now
+                    }
+                }
+            }
+            for key in oldGroups where key.columnID != destinationID {
+                normalize(all.filter { $0.columnID == key.columnID && $0.archivedAt == nil && $0.isCompleted == key.completed && !chosenIDs.contains($0.id) })
+            }
+        }
+    }
+
     private func moveEntities(_ chosen: [TaskEntity], to destinationID: UUID, context: ModelContext) throws {
         let allColumns = try allColumns(context)
         guard let destination = allColumns.first(where: { $0.id == destinationID }) else { throw StoreError.invalidDestination }
