@@ -24,6 +24,10 @@ struct BoardView: View {
     @State private var dragLocation: CGPoint?
     @State private var columnFrames: [UUID: CGRect] = [:]
     @State private var taskFrames: [UUID: CGRect] = [:]
+    @State private var draggingColumnID: UUID?
+    @State private var columnDragLocation: CGPoint?
+    @State private var columnDropBeforeID: UUID?
+    @State private var columnDropAtEnd = false
     @State private var hoveredColumnID: UUID?
     @State private var hoveredTaskID: UUID?
     @State private var hoveredCheckboxID: UUID?
@@ -73,6 +77,19 @@ struct BoardView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 9))
                     .shadow(color: .black.opacity(0.15), radius: 10, y: 4)
                     .position(dragLocation)
+                    .allowsHitTesting(false)
+                    .zIndex(10)
+            }
+            if let columnDragLocation, let draggingColumnID,
+               let column = boardColumns.first(where: { $0.id == draggingColumnID }) {
+                Label(column.title, systemImage: "rectangle.split.3x1")
+                    .font(.callout.weight(.medium))
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(Pastel.color(column.colorID))
+                    .clipShape(RoundedRectangle(cornerRadius: 9))
+                    .shadow(color: .black.opacity(0.15), radius: 10, y: 4)
+                    .position(columnDragLocation)
                     .allowsHitTesting(false)
                     .zIndex(10)
             }
@@ -195,12 +212,24 @@ struct BoardView: View {
         return VStack(spacing: 0) {
             Pastel.color(column.colorID)
                 .frame(height: 5)
-            HStack {
-                Text(column.title)
-                    .font(.headline)
-                    .lineLimit(1)
-                    .onTapGesture { focusedQuickTaskColumnID = nil }
-                Spacer(minLength: 6)
+            HStack(spacing: 8) {
+                HStack(spacing: 7) {
+                    Image(systemName: "line.3.horizontal")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                    Text(column.title)
+                        .font(.headline)
+                        .lineLimit(1)
+                    Spacer(minLength: 0)
+                }
+                .contentShape(Rectangle())
+                .onTapGesture { focusedQuickTaskColumnID = nil }
+                .simultaneousGesture(
+                    DragGesture(minimumDistance: 5, coordinateSpace: .named("board"))
+                        .onChanged { value in updateColumnDrag(column, at: value.location) }
+                        .onEnded { value in finishColumnDrag(at: value.location) }
+                )
+                .help("Перетащить колонку")
                 Text("\(open.count + done.count)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -261,6 +290,25 @@ struct BoardView: View {
         .overlay {
             RoundedRectangle(cornerRadius: 12)
                 .strokeBorder(dropTargetColumnID == column.id ? Color.accentColor : Color.primary.opacity(hoveredColumnID == column.id ? 0.18 : 0.08), lineWidth: dropTargetColumnID == column.id ? 2 : 1)
+        }
+        .overlay(alignment: .leading) {
+            if draggingColumnID != nil && columnDropBeforeID == column.id {
+                Capsule()
+                    .fill(Color.accentColor)
+                    .frame(width: 4)
+                    .padding(.vertical, 12)
+                    .offset(x: -10)
+            }
+        }
+        .overlay(alignment: .trailing) {
+            if columnDropAtEnd,
+               column.id == boardColumns.last(where: { $0.id != draggingColumnID })?.id {
+                Capsule()
+                    .fill(Color.accentColor)
+                    .frame(width: 4)
+                    .padding(.vertical, 12)
+                    .offset(x: 10)
+            }
         }
         .shadow(color: .black.opacity(hoveredColumnID == column.id ? 0.075 : 0.035), radius: hoveredColumnID == column.id ? 12 : 5, y: 3)
         .onHover { hoveredColumnID = $0 ? column.id : nil }
@@ -432,6 +480,42 @@ struct BoardView: View {
             !draggingIDs.contains(task.id) && (taskFrames[task.id]?.midY ?? -.infinity) > point.y
         }
         return (column.id, before?.id)
+    }
+
+    private func columnDragDestination(at point: CGPoint, movingID: UUID) -> (index: Int, beforeID: UUID?)? {
+        let frames = boardColumns.compactMap { columnFrames[$0.id] }
+        guard let minX = frames.map(\.minX).min(), let maxX = frames.map(\.maxX).max(),
+              point.x >= minX, point.x <= maxX,
+              frames.contains(where: { point.y >= $0.minY && point.y <= $0.maxY }) else { return nil }
+        let remaining = boardColumns.filter { $0.id != movingID }
+        let index = remaining.firstIndex { point.x < (columnFrames[$0.id]?.midX ?? .infinity) } ?? remaining.count
+        return (index, remaining.indices.contains(index) ? remaining[index].id : nil)
+    }
+
+    private func updateColumnDrag(_ column: ColumnRecord, at point: CGPoint) {
+        if draggingColumnID == nil {
+            draggingColumnID = column.id
+            focusedQuickTaskColumnID = nil
+        }
+        columnDragLocation = point
+        let destination = columnDragDestination(at: point, movingID: column.id)
+        columnDropBeforeID = destination?.beforeID
+        columnDropAtEnd = destination != nil && destination?.beforeID == nil
+    }
+
+    private func finishColumnDrag(at point: CGPoint) {
+        let destination = draggingColumnID.flatMap { columnDragDestination(at: point, movingID: $0) }
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
+            if let draggingColumnID, let destination {
+                store.reorderColumn(draggingColumnID, to: destination.index)
+            }
+            draggingColumnID = nil
+            columnDragLocation = nil
+            columnDropBeforeID = nil
+            columnDropAtEnd = false
+        }
     }
 
     private func updateDrag(task: TaskRecord, at point: CGPoint) {

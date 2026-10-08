@@ -2,6 +2,36 @@ import XCTest
 
 final class DailyBoardUITests: XCTestCase {
     @MainActor
+    func testMoveNewColumnToBeginning() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-testing"]
+        app.launch()
+
+        app.buttons["Новая доска"].click()
+        let boardName = app.textFields["Название"]
+        XCTAssertTrue(boardName.waitForExistence(timeout: 5))
+        boardName.typeText("Доска")
+        app.buttons["Сохранить"].click()
+
+        for title in ["Первая", "Вторая", "Новая"] {
+            app.buttons["Колонка"].click()
+            let columnName = app.textFields["Название"]
+            XCTAssertTrue(columnName.waitForExistence(timeout: 5))
+            columnName.typeText(title)
+            app.buttons["Сохранить"].click()
+        }
+
+        let first = app.staticTexts["Первая"]
+        let new = app.staticTexts["Новая"]
+        XCTAssertTrue(first.waitForExistence(timeout: 5))
+        XCTAssertTrue(new.waitForExistence(timeout: 5))
+        XCTAssertGreaterThan(new.frame.midX, first.frame.midX)
+        new.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+            .press(forDuration: 0.3, thenDragTo: first.coordinate(withNormalizedOffset: CGVector(dx: 0.15, dy: 0.5)))
+        XCTAssertLessThan(new.frame.midX, first.frame.midX)
+    }
+
+    @MainActor
     func testReorderTasksInOneColumn() {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-testing"]

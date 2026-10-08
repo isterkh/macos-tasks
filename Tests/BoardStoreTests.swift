@@ -61,6 +61,21 @@ final class BoardStoreTests: XCTestCase {
         XCTAssertEqual(store.tasks(in: column, completed: false).map(\.id), [third])
     }
 
+    func testReorderColumnToBeginning() {
+        let store = BoardStore(inMemory: true)
+        let board = tryID(store.createBoard("Доска"))
+        let first = tryID(store.createColumn(boardID: board, title: "Первая"))
+        let second = tryID(store.createColumn(boardID: board, title: "Вторая"))
+        let third = tryID(store.createColumn(boardID: board, title: "Третья"))
+
+        store.reorderColumn(third, to: 0)
+        XCTAssertEqual(store.columns(in: board).map(\.id), [third, first, second])
+        XCTAssertEqual(store.columns(in: board).map(\.position), [0, 1, 2])
+
+        store.moveColumn(third, offset: 1)
+        XCTAssertEqual(store.columns(in: board).map(\.id), [first, third, second])
+    }
+
     func testDataSurvivesReopeningStore() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)

@@ -167,17 +167,25 @@ final class BoardStore: ObservableObject {
     }
 
     func moveColumn(_ id: UUID, offset: Int) {
+        guard let column = columns.first(where: { $0.id == id }),
+              let index = columns(in: column.boardID).firstIndex(where: { $0.id == id }) else { return }
+        reorderColumn(id, to: index + offset)
+    }
+
+    func reorderColumn(_ id: UUID, to destinationIndex: Int) {
         transact { context in
             let all = try allColumns(context)
             guard let column = all.first(where: { $0.id == id }) else { throw StoreError.notFound }
-            let ordered = all.filter { $0.boardID == column.boardID }.sorted { $0.position < $1.position }
+            var ordered = all.filter { $0.boardID == column.boardID }.sorted { $0.position < $1.position }
             guard let index = ordered.firstIndex(where: { $0.id == id }),
-                  ordered.indices.contains(index + offset) else { return }
+                  ordered.indices.contains(destinationIndex), index != destinationIndex else { return }
+            let moving = ordered.remove(at: index)
+            ordered.insert(moving, at: destinationIndex)
             let now = Date.now
-            ordered[index].position = index + offset
-            ordered[index + offset].position = index
-            ordered[index].updatedAt = now
-            ordered[index + offset].updatedAt = now
+            for (position, entry) in ordered.enumerated() where entry.position != position {
+                entry.position = position
+                entry.updatedAt = now
+            }
         }
     }
 
