@@ -1,4 +1,6 @@
 import Foundation
+import AppKit
+import UniformTypeIdentifiers
 import XCTest
 @testable import DailyBoard
 
@@ -57,6 +59,22 @@ final class BoardStoreTests: XCTestCase {
         XCTAssertNil(reopened.startupError)
         XCTAssertEqual(reopened.boards.map(\.id), [board])
         XCTAssertEqual(reopened.tasks(in: column, completed: false).map(\.id), [task])
+    }
+
+    func testDragPayloadUsesSystemTextType() {
+        let ids = [UUID(), UUID()]
+        let provider = NSItemProvider(object: NSString(string: TaskDragPayload.encode(ids)))
+        XCTAssertTrue(provider.hasItemConformingToTypeIdentifier(UTType.utf8PlainText.identifier))
+        XCTAssertTrue(provider.canLoadObject(ofClass: NSString.self))
+        let loaded = expectation(description: "Pasteboard data loads")
+        _ = provider.loadObject(ofClass: NSString.self) { object, error in
+            XCTAssertNil(error)
+            XCTAssertEqual(TaskDragPayload.decode(object as? String ?? ""), ids)
+            loaded.fulfill()
+        }
+        wait(for: [loaded], timeout: 5)
+        XCTAssertEqual(TaskDragPayload.decode(TaskDragPayload.encode(ids)), ids)
+        XCTAssertNil(TaskDragPayload.decode("обычный текст"))
     }
 
     private func tryID(_ value: UUID?, file: StaticString = #filePath, line: UInt = #line) -> UUID {

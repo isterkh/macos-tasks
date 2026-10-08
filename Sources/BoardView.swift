@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct BoardView: View {
     @ObservedObject var store: BoardStore
@@ -16,6 +17,8 @@ struct BoardView: View {
     @State private var deletingTaskIDs: [UUID]?
     @State private var destinationRequest: DestinationRequest?
     @State private var showingArchive = false
+    @State private var dropTargetColumnID: UUID?
+    @State private var dropTargetTaskID: UUID?
 
     private var boardColumns: [ColumnRecord] { store.columns(in: board.id) }
 
@@ -199,14 +202,20 @@ struct BoardView: View {
             }
         }
         .frame(width: 290)
-        .background(Color(nsColor: .underPageBackgroundColor))
+        .background {
+            Color(nsColor: .textBackgroundColor)
+                .overlay(Pastel.color(column.colorID).opacity(0.18))
+        }
         .clipShape(RoundedRectangle(cornerRadius: 12))
-        .overlay { RoundedRectangle(cornerRadius: 12).strokeBorder(.quaternary) }
-        .dropDestination(for: TaskDrag.self) { drags, _ in
-            guard let drag = drags.first else { return false }
-            store.moveTasks(drag.ids, to: column.id)
-            selectedIDs.removeAll()
-            return true
+        .overlay {
+            RoundedRectangle(cornerRadius: 12)
+                .strokeBorder(dropTargetColumnID == column.id ? Color.accentColor : Color.primary.opacity(0.08), lineWidth: dropTargetColumnID == column.id ? 2 : 1)
+        }
+        .onDrop(of: [.utf8PlainText], isTargeted: Binding(
+            get: { dropTargetColumnID == column.id },
+            set: { dropTargetColumnID = $0 ? column.id : nil }
+        )) { providers in
+            acceptDrop(providers, into: column.id)
         }
     }
 
@@ -255,10 +264,12 @@ struct BoardView: View {
                 Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
                     .font(.title3)
                     .foregroundStyle(task.isCompleted ? .green : .secondary)
+                    .frame(width: 24, height: 24)
             }
             .buttonStyle(.plain)
-            .padding(.leading, 10)
-            .padding(.trailing, 8)
+            .padding(.top, 7)
+            .padding(.leading, 8)
+            .padding(.trailing, 6)
             VStack(alignment: .leading, spacing: 4) {
                 Text(task.title)
                     .foregroundStyle(task.isCompleted ? .secondary : .primary)
@@ -279,28 +290,19 @@ struct BoardView: View {
         .clipShape(RoundedRectangle(cornerRadius: 8))
         .overlay {
             RoundedRectangle(cornerRadius: 8)
-                .strokeBorder(selectedIDs.contains(task.id) ? Color.accentColor : Color.primary.opacity(0.07), lineWidth: selectedIDs.contains(task.id) ? 2 : 1)
+                .strokeBorder(selectedIDs.contains(task.id) || dropTargetTaskID == task.id ? Color.accentColor : Color.primary.opacity(0.07), lineWidth: selectedIDs.contains(task.id) || dropTargetTaskID == task.id ? 2 : 1)
         }
         .contentShape(Rectangle())
         .onTapGesture { handleTaskClick(task, column: column) }
-        .draggable(TaskDrag(ids: dragIDs(for: task))) {
-            Label(selectedIDs.contains(task.id) ? "\(selectedIDs.count) задач" : task.title, systemImage: "rectangle.on.rectangle")
-                .padding(8)
-                .background(.regularMaterial)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+        .onDrag {
+            let ids = dragIDs(for: task)
+            return NSItemProvider(object: NSString(string: TaskDragPayload.encode(ids)))
         }
-        .dropDestination(for: TaskDrag.self) { drags, _ in
-            guard let drag = drags.first, !drag.ids.contains(task.id) else { return false }
-            if drag.ids.count == 1,
-               let moving = store.tasks.first(where: { $0.id == drag.ids[0] }),
-               moving.columnID == column.id,
-               moving.isCompleted == task.isCompleted {
-                store.reorderTask(moving.id, before: task.id)
-            } else {
-                store.moveTasks(drag.ids, to: column.id)
-            }
-            selectedIDs.removeAll()
-            return true
+        .onDrop(of: [.utf8PlainText], isTargeted: Binding(
+            get: { dropTargetTaskID == task.id },
+            set: { dropTargetTaskID = $0 ? task.id : nil }
+        )) { providers in
+            acceptDrop(providers, into: column.id, before: task)
         }
         .contextMenu {
             Menu("Перенести") {
@@ -350,6 +352,29 @@ struct BoardView: View {
                 < (positions[$1.columnID ?? UUID()] ?? Int.max, $1.isCompleted ? 1 : 0, $1.position)
             }
             .map(\.id)
+    }
+
+    private func acceptDrop(_ providers: [NSItemProvider], into columnID: UUID, before target: TaskRecord? = nil) -> Bool {
+        guard let provider = providers.first(where: { $0.canLoadObject(ofClass: NSString.self) }) else { return false }
+        _ = provider.loadObject(ofClass: NSString.self) { object, _ in
+            guard let text = object as? String,
+                  let ids = TaskDragPayload.decode(text),
+                  !ids.isEmpty else { return }
+            DispatchQueue.main.async {
+                if let target,
+                   ids.count == 1,
+                   ids[0] != target.id,
+                   let moving = store.tasks.first(where: { $0.id == ids[0] }),
+                   moving.columnID == columnID,
+                   moving.isCompleted == target.isCompleted {
+                    store.reorderTask(moving.id, before: target.id)
+                } else {
+                    store.moveTasks(ids, to: columnID)
+                }
+                selectedIDs.removeAll()
+            }
+        }
+        return true
     }
 
     private func quickBinding(for columnID: UUID) -> Binding<String> {

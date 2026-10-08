@@ -14,6 +14,7 @@
 		9012CE6CAAEF4DEEFD05E314 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED30929AF618B953121CF51B /* RootView.swift */; };
 		AC3E5189122C3D66EDE8621F /* BoardStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A89CF47FAA308DCA1DB5E9C9 /* BoardStore.swift */; };
 		C14BB93777DF49BDAC9DD041 /* DailyBoardApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4666F8044317043AD63F3D9D /* DailyBoardApp.swift */; };
+		CC24B6858D8E9B175353711E /* TaskDragPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFEF60EA52984599DA15217B /* TaskDragPayload.swift */; };
 		E54BF0D3B1F32CE7F5B53EF3 /* ArchiveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA2F162102CEBF0430935107 /* ArchiveView.swift */; };
 /* End PBXBuildFile section */
 
@@ -34,6 +35,7 @@
 		5B3D26E8BFFF9C14066BCE00 /* DailyBoardTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DailyBoardTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7ACC0DF81EC25E8C38015A52 /* DailyBoard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DailyBoard.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A89CF47FAA308DCA1DB5E9C9 /* BoardStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardStore.swift; sourceTree = "<group>"; };
+		AFEF60EA52984599DA15217B /* TaskDragPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskDragPayload.swift; sourceTree = "<group>"; };
 		B8F6614B047068B531EB0440 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		ED30929AF618B953121CF51B /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		F1E1E8EA9B15B226B4C6B85D /* BoardStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardStoreTests.swift; sourceTree = "<group>"; };
@@ -69,6 +71,7 @@
 				B8F6614B047068B531EB0440 /* Models.swift */,
 				5980A9ABA91C4C188B52EC6B /* Palette.swift */,
 				ED30929AF618B953121CF51B /* RootView.swift */,
+				AFEF60EA52984599DA15217B /* TaskDragPayload.swift */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -170,6 +173,7 @@
 				749D25277C85B2B98BCDA9CD /* Models.swift in Sources */,
 				1B7F39A70C085E9596BB7312 /* Palette.swift in Sources */,
 				9012CE6CAAEF4DEEFD05E314 /* RootView.swift in Sources */,
+				CC24B6858D8E9B175353711E /* TaskDragPayload.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

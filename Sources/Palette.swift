@@ -1,5 +1,4 @@
 import SwiftUI
-import UniformTypeIdentifiers
 
 struct Pastel: Identifiable {
     let id: String
@@ -55,17 +54,5 @@ struct PalettePicker: View {
                 .accessibilityLabel(pastel.name)
             }
         }
-    }
-}
-
-extension UTType {
-    static let boardTasks = UTType(exportedAs: "com.isterkh.dailyboard.tasks")
-}
-
-struct TaskDrag: Codable, Transferable {
-    let ids: [UUID]
-
-    static var transferRepresentation: some TransferRepresentation {
-        CodableRepresentation(contentType: .boardTasks)
     }
 }
