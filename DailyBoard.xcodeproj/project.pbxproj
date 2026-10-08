@@ -1,0 +1,413 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1B7F39A70C085E9596BB7312 /* Palette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5980A9ABA91C4C188B52EC6B /* Palette.swift */; };
+		5480BC9EDFF4567800EAA51B /* BoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3029D6DE2289706E9F17B423 /* BoardView.swift */; };
+		5C1241D092BFD48F04B21218 /* BoardStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1E1E8EA9B15B226B4C6B85D /* BoardStoreTests.swift */; };
+		749D25277C85B2B98BCDA9CD /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8F6614B047068B531EB0440 /* Models.swift */; };
+		9012CE6CAAEF4DEEFD05E314 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED30929AF618B953121CF51B /* RootView.swift */; };
+		AC3E5189122C3D66EDE8621F /* BoardStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A89CF47FAA308DCA1DB5E9C9 /* BoardStore.swift */; };
+		C14BB93777DF49BDAC9DD041 /* DailyBoardApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4666F8044317043AD63F3D9D /* DailyBoardApp.swift */; };
+		E54BF0D3B1F32CE7F5B53EF3 /* ArchiveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA2F162102CEBF0430935107 /* ArchiveView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		ACEE8E299E59E23C318C56CF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1245AF34FBCBD8A674C6434E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 494BAFEBC0F292D216CCDF5D;
+			remoteInfo = DailyBoard;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		3029D6DE2289706E9F17B423 /* BoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardView.swift; sourceTree = "<group>"; };
+		4666F8044317043AD63F3D9D /* DailyBoardApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyBoardApp.swift; sourceTree = "<group>"; };
+		5980A9ABA91C4C188B52EC6B /* Palette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Palette.swift; sourceTree = "<group>"; };
+		5B3D26E8BFFF9C14066BCE00 /* DailyBoardTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DailyBoardTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		7ACC0DF81EC25E8C38015A52 /* DailyBoard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DailyBoard.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A89CF47FAA308DCA1DB5E9C9 /* BoardStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardStore.swift; sourceTree = "<group>"; };
+		B8F6614B047068B531EB0440 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		ED30929AF618B953121CF51B /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		F1E1E8EA9B15B226B4C6B85D /* BoardStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardStoreTests.swift; sourceTree = "<group>"; };
+		FA2F162102CEBF0430935107 /* ArchiveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		0C62CA17AF3C628A0DD27602 = {
+			isa = PBXGroup;
+			children = (
+				37E5C29FF73814A745673E87 /* Sources */,
+				7E3BABC70B4B3AE77BCE640E /* Tests */,
+				3016ED13C33DD7130B548E04 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		3016ED13C33DD7130B548E04 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				7ACC0DF81EC25E8C38015A52 /* DailyBoard.app */,
+				5B3D26E8BFFF9C14066BCE00 /* DailyBoardTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		37E5C29FF73814A745673E87 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				FA2F162102CEBF0430935107 /* ArchiveView.swift */,
+				A89CF47FAA308DCA1DB5E9C9 /* BoardStore.swift */,
+				3029D6DE2289706E9F17B423 /* BoardView.swift */,
+				4666F8044317043AD63F3D9D /* DailyBoardApp.swift */,
+				B8F6614B047068B531EB0440 /* Models.swift */,
+				5980A9ABA91C4C188B52EC6B /* Palette.swift */,
+				ED30929AF618B953121CF51B /* RootView.swift */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		7E3BABC70B4B3AE77BCE640E /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				F1E1E8EA9B15B226B4C6B85D /* BoardStoreTests.swift */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		494BAFEBC0F292D216CCDF5D /* DailyBoard */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8DFB7F2DF9C94607E5589431 /* Build configuration list for PBXNativeTarget "DailyBoard" */;
+			buildPhases = (
+				C79C803C3CB34B66029D340D /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = DailyBoard;
+			packageProductDependencies = (
+			);
+			productName = DailyBoard;
+			productReference = 7ACC0DF81EC25E8C38015A52 /* DailyBoard.app */;
+			productType = "com.apple.product-type.application";
+		};
+		75FE572291E499B99B013DCB /* DailyBoardTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1CFAA558E70B22CF7EF11B55 /* Build configuration list for PBXNativeTarget "DailyBoardTests" */;
+			buildPhases = (
+				8F2D153BC60988D9812D642B /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B90010091EC64ECCA4F2A2BD /* PBXTargetDependency */,
+			);
+			name = DailyBoardTests;
+			packageProductDependencies = (
+			);
+			productName = DailyBoardTests;
+			productReference = 5B3D26E8BFFF9C14066BCE00 /* DailyBoardTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		1245AF34FBCBD8A674C6434E /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = 7038A451C956C836F93ADAB3 /* Build configuration list for PBXProject "DailyBoard" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 0C62CA17AF3C628A0DD27602;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 3016ED13C33DD7130B548E04 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				494BAFEBC0F292D216CCDF5D /* DailyBoard */,
+				75FE572291E499B99B013DCB /* DailyBoardTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		8F2D153BC60988D9812D642B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5C1241D092BFD48F04B21218 /* BoardStoreTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C79C803C3CB34B66029D340D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E54BF0D3B1F32CE7F5B53EF3 /* ArchiveView.swift in Sources */,
+				AC3E5189122C3D66EDE8621F /* BoardStore.swift in Sources */,
+				5480BC9EDFF4567800EAA51B /* BoardView.swift in Sources */,
+				C14BB93777DF49BDAC9DD041 /* DailyBoardApp.swift in Sources */,
+				749D25277C85B2B98BCDA9CD /* Models.swift in Sources */,
+				1B7F39A70C085E9596BB7312 /* Palette.swift in Sources */,
+				9012CE6CAAEF4DEEFD05E314 /* RootView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		B90010091EC64ECCA4F2A2BD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 494BAFEBC0F292D216CCDF5D /* DailyBoard */;
+			targetProxy = ACEE8E299E59E23C318C56CF /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		07AFADAAE3C3E3EE3615AA13 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Tasks;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.isterkh.DailyBoard;
+				SDKROOT = macosx;
+				SWIFT_STRICT_CONCURRENCY = complete;
+			};
+			name = Release;
+		};
+		41C4FA6DE13AA5664B1461B3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGNING_ALLOWED = NO;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.isterkh.DailyBoardTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DailyBoard.app/Contents/MacOS/DailyBoard";
+			};
+			name = Debug;
+		};
+		76AABEBF39A685DA2A8B45CD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Tasks;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.isterkh.DailyBoard;
+				SDKROOT = macosx;
+				SWIFT_STRICT_CONCURRENCY = complete;
+			};
+			name = Debug;
+		};
+		7C0312E77D5EC4051382422F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGNING_ALLOWED = NO;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		C974A9C20F1549B5354DA1CF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGNING_ALLOWED = NO;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		F9191330865E34E912AF2294 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGNING_ALLOWED = NO;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.isterkh.DailyBoardTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DailyBoard.app/Contents/MacOS/DailyBoard";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1CFAA558E70B22CF7EF11B55 /* Build configuration list for PBXNativeTarget "DailyBoardTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				41C4FA6DE13AA5664B1461B3 /* Debug */,
+				F9191330865E34E912AF2294 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		7038A451C956C836F93ADAB3 /* Build configuration list for PBXProject "DailyBoard" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7C0312E77D5EC4051382422F /* Debug */,
+				C974A9C20F1549B5354DA1CF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		8DFB7F2DF9C94607E5589431 /* Build configuration list for PBXNativeTarget "DailyBoard" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				76AABEBF39A685DA2A8B45CD /* Debug */,
+				07AFADAAE3C3E3EE3615AA13 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 1245AF34FBCBD8A674C6434E /* Project object */;
+}
