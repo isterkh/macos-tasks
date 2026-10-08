@@ -578,10 +578,11 @@ struct BoardView: View {
                 .onTapGesture(perform: attemptCloseEditor)
             if let draft = editorDraft {
                 TaskEditor(draft: Binding(get: { editorDraft ?? draft }, set: { editorDraft = $0 }), onSave: saveDraft, onCancel: { editorDraft = nil }, onEscape: attemptCloseEditor)
-                    .frame(width: 410)
+                    .frame(maxWidth: 440)
                     .background(.regularMaterial)
                     .clipShape(RoundedRectangle(cornerRadius: 14))
                     .shadow(radius: 24)
+                    .padding(.horizontal, 16)
             }
         }
     }
@@ -626,31 +627,104 @@ private struct TaskEditor: View {
     let onSave: () -> Void
     let onCancel: () -> Void
     let onEscape: () -> Void
-    @FocusState private var titleFocused: Bool
+    @FocusState private var focusedField: Field?
+
+    private enum Field: Hashable {
+        case title
+        case details
+    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("Задача").font(.headline)
-            TextField("Название", text: $draft.title)
-                .focused($titleFocused)
-            Text("Описание").font(.caption).foregroundStyle(.secondary)
-            TextEditor(text: $draft.details)
-                .font(.body)
-                .frame(height: 120)
-                .overlay { RoundedRectangle(cornerRadius: 6).strokeBorder(.quaternary) }
-            Text("Цвет").font(.caption).foregroundStyle(.secondary)
-            PalettePicker(selection: $draft.colorID, allowsNone: true)
+        VStack(spacing: 0) {
             HStack {
+                Image(systemName: "square.and.pencil")
+                    .foregroundStyle(.secondary)
+                Text("Редактировать задачу")
+                    .font(.headline)
+                Spacer()
+                Button(action: onEscape) {
+                    Image(systemName: "xmark")
+                        .font(.caption.weight(.semibold))
+                        .frame(width: 24, height: 24)
+                }
+                .buttonStyle(.plain)
+                .help("Закрыть")
+                .accessibilityLabel("Закрыть редактор")
+            }
+            .padding(.horizontal, 22)
+            .padding(.vertical, 16)
+
+            Divider()
+
+            VStack(alignment: .leading, spacing: 18) {
+                VStack(alignment: .leading, spacing: 7) {
+                    fieldLabel("Название")
+                    TextField("Что нужно сделать?", text: $draft.title)
+                        .font(.title3.weight(.medium))
+                        .textFieldStyle(.plain)
+                        .focused($focusedField, equals: .title)
+                        .padding(12)
+                        .background(fieldBackground(focused: focusedField == .title))
+                }
+
+                VStack(alignment: .leading, spacing: 7) {
+                    fieldLabel("Описание")
+                    ZStack(alignment: .topLeading) {
+                        TextEditor(text: $draft.details)
+                            .font(.body)
+                            .scrollContentBackground(.hidden)
+                            .focused($focusedField, equals: .details)
+                            .padding(.horizontal, 7)
+                            .padding(.vertical, 5)
+                        if draft.details.isEmpty {
+                            Text("Добавьте детали…")
+                                .foregroundStyle(.tertiary)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 12)
+                                .allowsHitTesting(false)
+                        }
+                    }
+                    .frame(height: 124)
+                    .background(fieldBackground(focused: focusedField == .details))
+                }
+
+                VStack(alignment: .leading, spacing: 9) {
+                    fieldLabel("Цвет карточки")
+                    PalettePicker(selection: $draft.colorID, allowsNone: true)
+                }
+            }
+            .padding(22)
+
+            Divider()
+
+            HStack(spacing: 10) {
                 Spacer()
                 Button("Отмена", action: onCancel)
                 Button("Сохранить", action: onSave)
+                    .buttonStyle(.borderedProminent)
                     .keyboardShortcut(.defaultAction)
                     .disabled(draft.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
+            .padding(.horizontal, 22)
+            .padding(.vertical, 14)
         }
-        .padding(22)
-        .onAppear { titleFocused = true }
+        .onAppear { focusedField = .title }
         .onExitCommand(perform: onEscape)
+    }
+
+    private func fieldLabel(_ title: String) -> some View {
+        Text(title)
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(.secondary)
+    }
+
+    private func fieldBackground(focused: Bool) -> some View {
+        RoundedRectangle(cornerRadius: 9)
+            .fill(Color(nsColor: .textBackgroundColor).opacity(0.8))
+            .overlay {
+                RoundedRectangle(cornerRadius: 9)
+                    .strokeBorder(focused ? Color.accentColor.opacity(0.7) : Color.primary.opacity(0.12), lineWidth: focused ? 1.5 : 1)
+            }
     }
 }
 
