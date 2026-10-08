@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct RootView: View {
-    @StateObject private var store = BoardStore()
+    @StateObject private var store = BoardStore(inMemory: ProcessInfo.processInfo.arguments.contains("--ui-testing"))
     @State private var selectedBoardID: UUID?
     @State private var boardDialog: BoardDialog?
     @State private var deletingBoard: BoardRecord?

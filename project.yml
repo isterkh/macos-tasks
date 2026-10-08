@@ -6,7 +6,8 @@ options:
 settings:
   base:
     SWIFT_VERSION: '6.0'
-    CODE_SIGNING_ALLOWED: NO
+    CODE_SIGNING_ALLOWED: YES
+    CODE_SIGN_IDENTITY: '-'
 targets:
   DailyBoard:
     type: application
@@ -23,6 +24,7 @@ targets:
     scheme:
       testTargets:
         - DailyBoardTests
+        - DailyBoardUITests
   DailyBoardTests:
     type: bundle.unit-test
     platform: macOS
@@ -33,4 +35,13 @@ targets:
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
-        CODE_SIGNING_ALLOWED: NO
+  DailyBoardUITests:
+    type: bundle.ui-testing
+    platform: macOS
+    sources:
+      - path: UITests
+    dependencies:
+      - target: DailyBoard
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES

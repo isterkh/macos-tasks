@@ -11,7 +11,7 @@
 ```sh
 DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild \
   -project DailyBoard.xcodeproj -scheme DailyBoard \
-  -derivedDataPath DerivedData CODE_SIGNING_ALLOWED=NO build
+  -derivedDataPath DerivedData build
 ```
 
 После сборки приложение находится в `DerivedData/Build/Products/Debug/DailyBoard.app`. Запуск: `open DerivedData/Build/Products/Debug/DailyBoard.app`.
@@ -31,5 +31,7 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild \
 ```sh
 DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild \
   -project DailyBoard.xcodeproj -scheme DailyBoard \
-  -derivedDataPath DerivedData CODE_SIGNING_ALLOWED=NO test
+  -derivedDataPath DerivedData test
 ```
+
+Тесты интерфейса используют системное разрешение macOS на управление приложением. При первом запуске тестов подтвердите запрос для тестового runner.

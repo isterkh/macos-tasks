@@ -16,10 +16,18 @@
 		C14BB93777DF49BDAC9DD041 /* DailyBoardApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4666F8044317043AD63F3D9D /* DailyBoardApp.swift */; };
 		CC24B6858D8E9B175353711E /* TaskDragPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFEF60EA52984599DA15217B /* TaskDragPayload.swift */; };
 		E54BF0D3B1F32CE7F5B53EF3 /* ArchiveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA2F162102CEBF0430935107 /* ArchiveView.swift */; };
+		EBB6D07005C30C6E1F42E5DD /* DailyBoardUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E70D1FFB44A453CB2FBE7ACA /* DailyBoardUITests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
 		ACEE8E299E59E23C318C56CF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1245AF34FBCBD8A674C6434E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 494BAFEBC0F292D216CCDF5D;
+			remoteInfo = DailyBoard;
+		};
+		D98836AFE245F71222564B44 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1245AF34FBCBD8A674C6434E /* Project object */;
 			proxyType = 1;
@@ -37,6 +45,8 @@
 		A89CF47FAA308DCA1DB5E9C9 /* BoardStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardStore.swift; sourceTree = "<group>"; };
 		AFEF60EA52984599DA15217B /* TaskDragPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskDragPayload.swift; sourceTree = "<group>"; };
 		B8F6614B047068B531EB0440 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		CEFD7F3801FC603595A25F7C /* DailyBoardUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DailyBoardUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		E70D1FFB44A453CB2FBE7ACA /* DailyBoardUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyBoardUITests.swift; sourceTree = "<group>"; };
 		ED30929AF618B953121CF51B /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		F1E1E8EA9B15B226B4C6B85D /* BoardStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardStoreTests.swift; sourceTree = "<group>"; };
 		FA2F162102CEBF0430935107 /* ArchiveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveView.swift; sourceTree = "<group>"; };
@@ -48,8 +58,17 @@
 			children = (
 				37E5C29FF73814A745673E87 /* Sources */,
 				7E3BABC70B4B3AE77BCE640E /* Tests */,
+				2FA00F4E79FF54E04DAA97D6 /* UITests */,
 				3016ED13C33DD7130B548E04 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		2FA00F4E79FF54E04DAA97D6 /* UITests */ = {
+			isa = PBXGroup;
+			children = (
+				E70D1FFB44A453CB2FBE7ACA /* DailyBoardUITests.swift */,
+			);
+			path = UITests;
 			sourceTree = "<group>";
 		};
 		3016ED13C33DD7130B548E04 /* Products */ = {
@@ -57,6 +76,7 @@
 			children = (
 				7ACC0DF81EC25E8C38015A52 /* DailyBoard.app */,
 				5B3D26E8BFFF9C14066BCE00 /* DailyBoardTests.xctest */,
+				CEFD7F3801FC603595A25F7C /* DailyBoardUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -122,6 +142,24 @@
 			productReference = 5B3D26E8BFFF9C14066BCE00 /* DailyBoardTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		86F82A0C3141A71B2A1F5FA0 /* DailyBoardUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 20823F2AAF465A5D8A44746D /* Build configuration list for PBXNativeTarget "DailyBoardUITests" */;
+			buildPhases = (
+				1FA4F1148A8A5CA8A3967BAE /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				2E8ABD5FF658F93898264415 /* PBXTargetDependency */,
+			);
+			name = DailyBoardUITests;
+			packageProductDependencies = (
+			);
+			productName = DailyBoardUITests;
+			productReference = CEFD7F3801FC603595A25F7C /* DailyBoardUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -131,6 +169,9 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
+					86F82A0C3141A71B2A1F5FA0 = {
+						TestTargetID = 494BAFEBC0F292D216CCDF5D;
+					};
 				};
 			};
 			buildConfigurationList = 7038A451C956C836F93ADAB3 /* Build configuration list for PBXProject "DailyBoard" */;
@@ -149,11 +190,20 @@
 			targets = (
 				494BAFEBC0F292D216CCDF5D /* DailyBoard */,
 				75FE572291E499B99B013DCB /* DailyBoardTests */,
+				86F82A0C3141A71B2A1F5FA0 /* DailyBoardUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXSourcesBuildPhase section */
+		1FA4F1148A8A5CA8A3967BAE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EBB6D07005C30C6E1F42E5DD /* DailyBoardUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		8F2D153BC60988D9812D642B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -180,6 +230,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		2E8ABD5FF658F93898264415 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 494BAFEBC0F292D216CCDF5D /* DailyBoard */;
+			targetProxy = D98836AFE245F71222564B44 /* PBXContainerItemProxy */;
+		};
 		B90010091EC64ECCA4F2A2BD /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 494BAFEBC0F292D216CCDF5D /* DailyBoard */;
@@ -210,7 +265,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGNING_ALLOWED = NO;
 				COMBINE_HIDPI_IMAGES = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -275,7 +329,8 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_ALLOWED = YES;
+				CODE_SIGN_IDENTITY = "-";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -303,6 +358,23 @@
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		C652F3A71F63034FF8A468DE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.isterkh.DailyBoardUITests;
+				SDKROOT = macosx;
+				TEST_TARGET_NAME = DailyBoard;
 			};
 			name = Debug;
 		};
@@ -339,7 +411,8 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_ALLOWED = YES;
+				CODE_SIGN_IDENTITY = "-";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -363,11 +436,27 @@
 			};
 			name = Release;
 		};
+		F158F423C57FE8A89681FB20 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.isterkh.DailyBoardUITests;
+				SDKROOT = macosx;
+				TEST_TARGET_NAME = DailyBoard;
+			};
+			name = Release;
+		};
 		F9191330865E34E912AF2294 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGNING_ALLOWED = NO;
 				COMBINE_HIDPI_IMAGES = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -389,6 +478,15 @@
 			buildConfigurations = (
 				41C4FA6DE13AA5664B1461B3 /* Debug */,
 				F9191330865E34E912AF2294 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		20823F2AAF465A5D8A44746D /* Build configuration list for PBXNativeTarget "DailyBoardUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C652F3A71F63034FF8A468DE /* Debug */,
+				F158F423C57FE8A89681FB20 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
