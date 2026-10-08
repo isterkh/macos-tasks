@@ -61,10 +61,11 @@ final class BoardStoreTests: XCTestCase {
         XCTAssertEqual(reopened.tasks(in: column, completed: false).map(\.id), [task])
     }
 
-    func testDragPayloadUsesSystemTextType() {
+    func testDragPayloadUsesSystemTextAndLocalType() {
         let ids = [UUID(), UUID()]
-        let provider = NSItemProvider(object: NSString(string: TaskDragPayload.encode(ids)))
+        let provider = TaskDragPayload.itemProvider(for: ids)
         XCTAssertTrue(provider.hasItemConformingToTypeIdentifier(UTType.utf8PlainText.identifier))
+        XCTAssertTrue(provider.hasItemConformingToTypeIdentifier(TaskDragPayload.contentType.identifier))
         XCTAssertTrue(provider.canLoadObject(ofClass: NSString.self))
         let loaded = expectation(description: "Pasteboard data loads")
         _ = provider.loadObject(ofClass: NSString.self) { object, error in

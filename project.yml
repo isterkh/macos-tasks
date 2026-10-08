@@ -14,6 +14,14 @@ targets:
     platform: macOS
     sources:
       - path: Sources
+    info:
+      path: Sources/Info.plist
+      properties:
+        UTExportedTypeDeclarations:
+          - UTTypeIdentifier: com.isterkh.dailyboard.tasks
+            UTTypeDescription: Daily Board Tasks
+            UTTypeConformsTo:
+              - public.utf8-plain-text
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.isterkh.DailyBoard

@@ -44,6 +44,7 @@
 		7ACC0DF81EC25E8C38015A52 /* DailyBoard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DailyBoard.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A89CF47FAA308DCA1DB5E9C9 /* BoardStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardStore.swift; sourceTree = "<group>"; };
 		AFEF60EA52984599DA15217B /* TaskDragPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskDragPayload.swift; sourceTree = "<group>"; };
+		B22BE0D528CFFB800103674F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		B8F6614B047068B531EB0440 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		CEFD7F3801FC603595A25F7C /* DailyBoardUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DailyBoardUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E70D1FFB44A453CB2FBE7ACA /* DailyBoardUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyBoardUITests.swift; sourceTree = "<group>"; };
@@ -88,6 +89,7 @@
 				A89CF47FAA308DCA1DB5E9C9 /* BoardStore.swift */,
 				3029D6DE2289706E9F17B423 /* BoardView.swift */,
 				4666F8044317043AD63F3D9D /* DailyBoardApp.swift */,
+				B22BE0D528CFFB800103674F /* Info.plist */,
 				B8F6614B047068B531EB0440 /* Models.swift */,
 				5980A9ABA91C4C188B52EC6B /* Palette.swift */,
 				ED30929AF618B953121CF51B /* RootView.swift */,
@@ -249,6 +251,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Sources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Tasks;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -284,6 +287,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Sources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Tasks;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

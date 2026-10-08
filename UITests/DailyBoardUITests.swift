@@ -26,6 +26,16 @@ final class DailyBoardUITests: XCTestCase {
         quickTask.click()
         quickTask.typeText("Первое дело\n")
         XCTAssertTrue(app.staticTexts["Первое дело"].waitForExistence(timeout: 5))
+        quickTask.click()
+        quickTask.typeText("Черновик")
+        quickTask.typeKey(XCUIKeyboardKey.escape, modifierFlags: [])
+        app.typeKey("x", modifierFlags: [])
+        XCTAssertEqual(quickTask.value as? String, "Черновик")
+
+        let complete = app.buttons["Завершить задачу"]
+        XCTAssertTrue(complete.waitForExistence(timeout: 5))
+        complete.click()
+        XCTAssertTrue(app.buttons["Отметить незавершённой"].waitForExistence(timeout: 5))
 
         addColumn.click()
         let destinationName = app.textFields["Название"]

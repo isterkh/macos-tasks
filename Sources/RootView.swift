@@ -88,6 +88,7 @@ struct RootView: View {
                     Label("Новая доска", systemImage: "plus")
                 }
                 .buttonStyle(.plain)
+                .modifier(HoverHighlight())
                 Spacer()
             }
             .padding(12)

@@ -19,6 +19,11 @@ struct BoardView: View {
     @State private var showingArchive = false
     @State private var dropTargetColumnID: UUID?
     @State private var dropTargetTaskID: UUID?
+    @State private var activeDragIDs: [UUID]?
+    @State private var hoveredColumnID: UUID?
+    @State private var hoveredTaskID: UUID?
+    @State private var hoveredCheckboxID: UUID?
+    @FocusState private var focusedQuickTaskColumnID: UUID?
 
     private var boardColumns: [ColumnRecord] { store.columns(in: board.id) }
 
@@ -35,14 +40,20 @@ struct BoardView: View {
                                     .frame(height: max(300, geometry.size.height - 24))
                             }
                             Button {
+                                focusedQuickTaskColumnID = nil
                                 showingNewColumn = true
                             } label: {
                                 Label("Новая колонка", systemImage: "plus")
                                     .frame(width: 260, height: 50)
                             }
                             .buttonStyle(.bordered)
+                            .modifier(HoverHighlight())
                         }
                         .padding(16)
+                    }
+                    .background {
+                        Color.clear.contentShape(Rectangle())
+                            .onTapGesture { focusedQuickTaskColumnID = nil }
                     }
                 }
             }
@@ -118,7 +129,9 @@ struct BoardView: View {
 
     private var header: some View {
         HStack(spacing: 12) {
-            Text(board.title).font(.title2.weight(.semibold))
+            Text(board.title)
+                .font(.title2.weight(.semibold))
+                .onTapGesture { focusedQuickTaskColumnID = nil }
             Spacer()
             if !selectedIDs.isEmpty {
                 Text("Выбрано: \(selectedIDs.count)")
@@ -136,17 +149,22 @@ struct BoardView: View {
                 } label: {
                     Label("Действия", systemImage: "ellipsis.circle")
                 }
+                .modifier(HoverHighlight())
             }
             Button {
+                focusedQuickTaskColumnID = nil
                 showingArchive = true
             } label: {
                 Label("Архив", systemImage: "archivebox")
             }
+            .modifier(HoverHighlight())
             Button {
+                focusedQuickTaskColumnID = nil
                 showingNewColumn = true
             } label: {
                 Label("Колонка", systemImage: "plus")
             }
+            .modifier(HoverHighlight())
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 12)
@@ -162,6 +180,7 @@ struct BoardView: View {
                 Text(column.title)
                     .font(.headline)
                     .lineLimit(1)
+                    .onTapGesture { focusedQuickTaskColumnID = nil }
                 Spacer(minLength: 6)
                 Text("\(open.count + done.count)")
                     .font(.caption)
@@ -172,20 +191,26 @@ struct BoardView: View {
             HStack(spacing: 6) {
                 TextField("Быстрая задача", text: quickBinding(for: column.id))
                     .textFieldStyle(.roundedBorder)
+                    .focused($focusedQuickTaskColumnID, equals: column.id)
                     .onSubmit { addQuickTask(in: column.id) }
+                    .onExitCommand { focusedQuickTaskColumnID = nil }
                 Button {
                     addQuickTask(in: column.id)
                 } label: {
                     Image(systemName: "plus")
                 }
                 .buttonStyle(.borderless)
+                .modifier(HoverHighlight(cornerRadius: 6))
                 .help("Добавить задачу")
             }
             .padding(.horizontal, 10)
             .padding(.bottom, 10)
             ScrollView(.vertical) {
                 LazyVStack(spacing: 8) {
-                    ForEach(open) { task in taskView(task, in: column) }
+                    ForEach(open) { task in
+                        taskView(task, in: column)
+                            .id("\(task.id)-open")
+                    }
                     if !done.isEmpty {
                         HStack(spacing: 8) {
                             Rectangle().frame(height: 1)
@@ -195,10 +220,17 @@ struct BoardView: View {
                         .foregroundStyle(.tertiary)
                         .padding(.vertical, 8)
                     }
-                    ForEach(done) { task in taskView(task, in: column) }
+                    ForEach(done) { task in
+                        taskView(task, in: column)
+                            .id("\(task.id)-done")
+                    }
                 }
                 .padding(.horizontal, 10)
                 .padding(.bottom, 16)
+            }
+            .background {
+                Color.clear.contentShape(Rectangle())
+                    .onTapGesture { focusedQuickTaskColumnID = nil }
             }
         }
         .frame(width: 290)
@@ -209,8 +241,11 @@ struct BoardView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay {
             RoundedRectangle(cornerRadius: 12)
-                .strokeBorder(dropTargetColumnID == column.id ? Color.accentColor : Color.primary.opacity(0.08), lineWidth: dropTargetColumnID == column.id ? 2 : 1)
+                .strokeBorder(dropTargetColumnID == column.id ? Color.accentColor : Color.primary.opacity(hoveredColumnID == column.id ? 0.18 : 0.08), lineWidth: dropTargetColumnID == column.id ? 2 : 1)
         }
+        .shadow(color: .black.opacity(hoveredColumnID == column.id ? 0.075 : 0.035), radius: hoveredColumnID == column.id ? 12 : 5, y: 3)
+        .onHover { hoveredColumnID = $0 ? column.id : nil }
+        .animation(.easeOut(duration: 0.16), value: hoveredColumnID == column.id)
         .onDrop(of: [.utf8PlainText], isTargeted: Binding(
             get: { dropTargetColumnID == column.id },
             set: { dropTargetColumnID = $0 ? column.id : nil }
@@ -250,6 +285,7 @@ struct BoardView: View {
                 .frame(width: 24, height: 24)
         }
         .menuStyle(.borderlessButton)
+        .modifier(HoverHighlight(cornerRadius: 6))
         .help("Действия с колонкой")
     }
 
@@ -262,14 +298,23 @@ struct BoardView: View {
                 store.toggleTask(task.id)
             } label: {
                 Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
-                    .font(.title3)
+                    .font(.system(size: 19, weight: .regular))
                     .foregroundStyle(task.isCompleted ? .green : .secondary)
-                    .frame(width: 24, height: 24)
+                    .frame(width: 36, height: 36)
+                    .background {
+                        Circle().fill(hoveredCheckboxID == task.id ? Color.accentColor.opacity(0.09) : .clear)
+                    }
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .padding(.top, 7)
-            .padding(.leading, 8)
-            .padding(.trailing, 6)
+            .frame(width: 36, height: 36)
+            .contentShape(Rectangle())
+            .accessibilityLabel(task.isCompleted ? "Отметить незавершённой" : "Завершить задачу")
+            .help(task.isCompleted ? "Отметить незавершённой" : "Завершить задачу")
+            .onHover { hoveredCheckboxID = $0 ? task.id : nil }
+            .animation(.easeOut(duration: 0.15), value: hoveredCheckboxID == task.id)
+            .padding(.leading, 5)
+            .padding(.trailing, 3)
             VStack(alignment: .leading, spacing: 4) {
                 Text(task.title)
                     .foregroundStyle(task.isCompleted ? .secondary : .primary)
@@ -284,19 +329,31 @@ struct BoardView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.vertical, 10)
             .padding(.trailing, 10)
+            .contentShape(Rectangle())
+            .onTapGesture { handleTaskClick(task, column: column) }
         }
         .frame(minHeight: 42)
         .background(Color(nsColor: .controlBackgroundColor))
         .clipShape(RoundedRectangle(cornerRadius: 8))
         .overlay {
             RoundedRectangle(cornerRadius: 8)
-                .strokeBorder(selectedIDs.contains(task.id) || dropTargetTaskID == task.id ? Color.accentColor : Color.primary.opacity(0.07), lineWidth: selectedIDs.contains(task.id) || dropTargetTaskID == task.id ? 2 : 1)
+                .strokeBorder(selectedIDs.contains(task.id) || dropTargetTaskID == task.id ? Color.accentColor : Color.primary.opacity(hoveredTaskID == task.id ? 0.2 : 0.07), lineWidth: selectedIDs.contains(task.id) || dropTargetTaskID == task.id ? 2 : 1)
         }
+        .shadow(color: .black.opacity(hoveredTaskID == task.id ? 0.1 : 0), radius: 7, y: 2)
+        .onHover { hoveredTaskID = $0 ? task.id : nil }
+        .animation(.easeOut(duration: 0.15), value: hoveredTaskID == task.id)
         .contentShape(Rectangle())
-        .onTapGesture { handleTaskClick(task, column: column) }
         .onDrag {
             let ids = dragIDs(for: task)
-            return NSItemProvider(object: NSString(string: TaskDragPayload.encode(ids)))
+            activeDragIDs = ids
+            return TaskDragPayload.itemProvider(for: ids)
+        } preview: {
+            Label(dragIDs(for: task).count > 1 ? "\(dragIDs(for: task).count) задач" : task.title, systemImage: "hand.draw")
+                .font(.callout.weight(.medium))
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(.regularMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 9))
         }
         .onDrop(of: [.utf8PlainText], isTargeted: Binding(
             get: { dropTargetTaskID == task.id },
@@ -316,6 +373,7 @@ struct BoardView: View {
     }
 
     private func handleTaskClick(_ task: TaskRecord, column: ColumnRecord) {
+        focusedQuickTaskColumnID = nil
         let flags = NSEvent.modifierFlags
         if flags.contains(.command) {
             if selectedIDs.contains(task.id) { selectedIDs.remove(task.id) }
@@ -356,25 +414,40 @@ struct BoardView: View {
 
     private func acceptDrop(_ providers: [NSItemProvider], into columnID: UUID, before target: TaskRecord? = nil) -> Bool {
         guard let provider = providers.first(where: { $0.canLoadObject(ofClass: NSString.self) }) else { return false }
+        if provider.hasItemConformingToTypeIdentifier(TaskDragPayload.contentType.identifier),
+           let ids = activeDragIDs, !ids.isEmpty {
+            applyDrop(ids, into: columnID, before: target)
+            activeDragIDs = nil
+            return true
+        }
         _ = provider.loadObject(ofClass: NSString.self) { object, _ in
             guard let text = object as? String,
                   let ids = TaskDragPayload.decode(text),
                   !ids.isEmpty else { return }
             DispatchQueue.main.async {
-                if let target,
-                   ids.count == 1,
-                   ids[0] != target.id,
-                   let moving = store.tasks.first(where: { $0.id == ids[0] }),
-                   moving.columnID == columnID,
-                   moving.isCompleted == target.isCompleted {
-                    store.reorderTask(moving.id, before: target.id)
-                } else {
-                    store.moveTasks(ids, to: columnID)
-                }
-                selectedIDs.removeAll()
+                applyDrop(ids, into: columnID, before: target)
+                activeDragIDs = nil
             }
         }
         return true
+    }
+
+    private func applyDrop(_ ids: [UUID], into columnID: UUID, before target: TaskRecord?) {
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
+            if let target,
+               ids.count == 1,
+               ids[0] != target.id,
+               let moving = store.tasks.first(where: { $0.id == ids[0] }),
+               moving.columnID == columnID,
+               moving.isCompleted == target.isCompleted {
+                store.reorderTask(moving.id, before: target.id)
+            } else {
+                store.moveTasks(ids, to: columnID)
+            }
+            selectedIDs.removeAll()
+        }
     }
 
     private func quickBinding(for columnID: UUID) -> Binding<String> {
@@ -547,4 +620,20 @@ private struct DestinationRequest: Identifiable {
     let title: String
     let excludedColumnID: UUID?
     let action: Action
+}
+
+struct HoverHighlight: ViewModifier {
+    var cornerRadius: CGFloat = 8
+    @State private var isHovered = false
+
+    func body(content: Content) -> some View {
+        content
+            .padding(3)
+            .background {
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .fill(isHovered ? Color.accentColor.opacity(0.08) : .clear)
+            }
+            .onHover { isHovered = $0 }
+            .animation(.easeOut(duration: 0.15), value: isHovered)
+    }
 }
