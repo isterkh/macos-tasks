@@ -21,10 +21,12 @@ struct ArchiveView: View {
                 Spacer()
                 Button("Готово") { dismiss() }
             }
-            .padding(20)
+            .padding(.horizontal, 20)
+            .frame(height: 88)
             Divider()
             if archived.isEmpty {
                 ContentUnavailableView("Архив пуст", systemImage: "archivebox")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 List(archived) { task in
                     HStack(spacing: 12) {

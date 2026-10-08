@@ -2,6 +2,7 @@ import SwiftUI
 
 struct RootView: View {
     @StateObject private var store = BoardStore(inMemory: ProcessInfo.processInfo.arguments.contains("--ui-testing"))
+    @State private var columnVisibility: NavigationSplitViewVisibility = .all
     @State private var selectedBoardID: UUID?
     @State private var boardDialog: BoardDialog?
     @State private var deletingBoard: BoardRecord?
@@ -15,7 +16,7 @@ struct RootView: View {
             if let startupError = store.startupError {
                 ContentUnavailableView("Не удалось открыть задачи", systemImage: "externaldrive.badge.exclamationmark", description: Text(startupError))
             } else {
-                NavigationSplitView {
+                NavigationSplitView(columnVisibility: $columnVisibility) {
                     sidebar
                         .navigationSplitViewColumnWidth(min: 180, ideal: 220, max: 300)
                 } detail: {
@@ -58,6 +59,7 @@ struct RootView: View {
             Text(store.errorMessage ?? "")
         }
         .onAppear {
+            columnVisibility = .all
             if selectedBoardID == nil { selectedBoardID = store.boards.first?.id }
         }
     }

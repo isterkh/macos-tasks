@@ -31,6 +31,7 @@ struct BoardView: View {
     @State private var hoveredColumnID: UUID?
     @State private var hoveredTaskID: UUID?
     @State private var hoveredCheckboxID: UUID?
+    @AppStorage("columnWidth") private var columnWidth = 290
     @FocusState private var focusedQuickTaskColumnID: UUID?
 
     private var boardColumns: [ColumnRecord] { store.columns(in: board.id) }
@@ -41,10 +42,12 @@ struct BoardView: View {
                 header
                 Divider()
                 GeometryReader { geometry in
+                    let visibleColumnWidth = min(columnWidth, max(220, Int(geometry.size.width) - 32))
                     ScrollView(.horizontal) {
                         HStack(alignment: .top, spacing: 16) {
                             ForEach(boardColumns) { column in
                                 columnView(column)
+                                    .frame(width: CGFloat(visibleColumnWidth))
                                     .frame(height: max(300, geometry.size.height - 24))
                             }
                             Button {
@@ -52,7 +55,7 @@ struct BoardView: View {
                                 showingNewColumn = true
                             } label: {
                                 Label("Новая колонка", systemImage: "plus")
-                                    .frame(width: 260, height: 50)
+                                    .frame(width: CGFloat(visibleColumnWidth), height: 50)
                             }
                             .buttonStyle(.bordered)
                             .modifier(HoverHighlight())
@@ -167,6 +170,7 @@ struct BoardView: View {
         HStack(spacing: 12) {
             Text(board.title)
                 .font(.title2.weight(.semibold))
+                .lineLimit(1)
                 .onTapGesture { focusedQuickTaskColumnID = nil }
             Spacer()
             if !selectedIDs.isEmpty {
@@ -200,6 +204,18 @@ struct BoardView: View {
             } label: {
                 Label("Колонка", systemImage: "plus")
             }
+            .modifier(HoverHighlight())
+            Menu {
+                Picker("Ширина колонок", selection: $columnWidth) {
+                    Text("Компактные").tag(220)
+                    Text("Обычные").tag(290)
+                    Text("Широкие").tag(360)
+                }
+            } label: {
+                Label("Ширина колонок", systemImage: "arrow.left.and.right")
+            }
+            .labelStyle(.iconOnly)
+            .help("Ширина колонок")
             .modifier(HoverHighlight())
         }
         .padding(.horizontal, 18)
@@ -281,7 +297,6 @@ struct BoardView: View {
                     .onTapGesture { focusedQuickTaskColumnID = nil }
             }
         }
-        .frame(width: 290)
         .background {
             Color(nsColor: .textBackgroundColor)
                 .overlay(Pastel.color(column.colorID).opacity(0.18))

@@ -3,9 +3,7 @@ import XCTest
 final class DailyBoardUITests: XCTestCase {
     @MainActor
     func testMoveNewColumnToBeginning() {
-        let app = XCUIApplication()
-        app.launchArguments = ["--ui-testing"]
-        app.launch()
+        let app = launchApp()
 
         app.buttons["Новая доска"].click()
         let boardName = app.textFields["Название"]
@@ -33,9 +31,7 @@ final class DailyBoardUITests: XCTestCase {
 
     @MainActor
     func testReorderTasksInOneColumn() {
-        let app = XCUIApplication()
-        app.launchArguments = ["--ui-testing"]
-        app.launch()
+        let app = launchApp()
 
         app.buttons["Новая доска"].click()
         let name = app.textFields["Название"]
@@ -64,9 +60,7 @@ final class DailyBoardUITests: XCTestCase {
 
     @MainActor
     func testCreateBoardColumnAndTask() {
-        let app = XCUIApplication()
-        app.launchArguments = ["--ui-testing"]
-        app.launch()
+        let app = launchApp()
 
         app.buttons["Новая доска"].click()
         let name = app.textFields["Название"]
@@ -112,5 +106,20 @@ final class DailyBoardUITests: XCTestCase {
         task.click(forDuration: 0.3, thenDragTo: destination)
         XCTAssertTrue(task.waitForExistence(timeout: 5))
         XCTAssertGreaterThan(task.frame.midX, originalX + 150)
+    }
+
+    @MainActor
+    private func launchApp() -> XCUIApplication {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-testing"]
+        app.launch()
+        app.activate()
+        let newBoard = app.buttons["Новая доска"]
+        if !newBoard.waitForExistence(timeout: 5) {
+            let showSidebar = app.buttons["Show Sidebar"]
+            if showSidebar.waitForExistence(timeout: 5) { showSidebar.click() }
+        }
+        XCTAssertTrue(newBoard.waitForExistence(timeout: 10))
+        return app
     }
 }
