@@ -31,6 +31,8 @@ struct BoardView: View {
     @State private var hoveredColumnID: UUID?
     @State private var hoveredTaskID: UUID?
     @State private var hoveredCheckboxID: UUID?
+    @State private var hoveredDescriptionTaskID: UUID?
+    @State private var commandPressed = false
     @AppStorage("columnWidth") private var columnWidth = 290
     @FocusState private var focusedQuickTaskColumnID: UUID?
 
@@ -98,6 +100,9 @@ struct BoardView: View {
             }
         }
         .coordinateSpace(name: "board")
+        .onModifierKeysChanged(mask: .command) { _, modifiers in
+            commandPressed = modifiers.contains(.command)
+        }
         .onPreferenceChange(ColumnFrameKey.self) { columnFrames = $0 }
         .onPreferenceChange(TaskFrameKey.self) { taskFrames = $0 }
         .sheet(isPresented: $showingNewColumn) {
@@ -401,10 +406,22 @@ struct BoardView: View {
                     .foregroundStyle(task.isCompleted ? .secondary : .primary)
                     .lineLimit(3)
                 if !task.details.isEmpty {
-                    Text(task.details)
+                    Text(linkedDescription(task.details, underlineLinks: commandPressed && hoveredDescriptionTaskID == task.id))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
+                        .onHover { inside in
+                            hoveredDescriptionTaskID = inside ? task.id : nil
+                            if inside { commandPressed = NSEvent.modifierFlags.contains(.command) }
+                        }
+                        .environment(\.openURL, OpenURLAction { url in
+                            if NSEvent.modifierFlags.contains(.command) {
+                                NSWorkspace.shared.open(url)
+                            } else {
+                                handleTaskClick(task, column: column)
+                            }
+                            return .handled
+                        })
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -471,6 +488,23 @@ struct BoardView: View {
             selectionAnchor = (column.id, task.id)
             editorDraft = TaskDraft(task)
         }
+    }
+
+    private func linkedDescription(_ details: String, underlineLinks: Bool) -> AttributedString {
+        let text = NSMutableAttributedString(string: details)
+        guard let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue) else {
+            return AttributedString(text)
+        }
+        for match in detector.matches(in: details, range: NSRange(details.startIndex..., in: details)) {
+            guard let url = match.url,
+                  let scheme = url.scheme?.lowercased(),
+                  scheme == "http" || scheme == "https" else { continue }
+            text.addAttribute(.link, value: url, range: match.range)
+            if underlineLinks {
+                text.addAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue, range: match.range)
+            }
+        }
+        return AttributedString(text)
     }
 
     private func actionIDs(for task: TaskRecord) -> [UUID] {
@@ -678,9 +712,10 @@ private struct TaskEditor: View {
                             .padding(.vertical, 5)
                         if draft.details.isEmpty {
                             Text("Добавьте детали…")
+                                .font(.body)
                                 .foregroundStyle(.tertiary)
                                 .padding(.horizontal, 12)
-                                .padding(.vertical, 12)
+                                .padding(.vertical, 5)
                                 .allowsHitTesting(false)
                         }
                     }
