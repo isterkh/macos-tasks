@@ -7,6 +7,7 @@ final class BoardStore: ObservableObject {
     @Published private(set) var boards: [BoardRecord] = []
     @Published private(set) var columns: [ColumnRecord] = []
     @Published private(set) var tasks: [TaskRecord] = []
+    @Published private(set) var checklistItems: [ChecklistItemRecord] = []
     @Published var errorMessage: String?
     @Published private(set) var startupError: String?
 
@@ -27,7 +28,7 @@ final class BoardStore: ObservableObject {
                 configuration = ModelConfiguration(url: directory.appendingPathComponent("Tasks.store"))
             }
             let container = try ModelContainer(
-                for: BoardEntity.self, ColumnEntity.self, TaskEntity.self,
+                for: BoardEntity.self, ColumnEntity.self, TaskEntity.self, ChecklistItemEntity.self,
                 configurations: configuration
             )
             let context = ModelContext(container)
@@ -45,9 +46,11 @@ final class BoardStore: ObservableObject {
         let loadedBoards = try context.fetch(FetchDescriptor<BoardEntity>())
         let loadedColumns = try context.fetch(FetchDescriptor<ColumnEntity>())
         let loadedTasks = try context.fetch(FetchDescriptor<TaskEntity>())
+        let loadedChecklistItems = try context.fetch(FetchDescriptor<ChecklistItemEntity>())
         boards = loadedBoards.map(BoardRecord.init).sorted { $0.position < $1.position }
         columns = loadedColumns.map(ColumnRecord.init).sorted { $0.position < $1.position }
         tasks = loadedTasks.map(TaskRecord.init)
+        checklistItems = loadedChecklistItems.map(ChecklistItemRecord.init)
     }
 
     @discardableResult
@@ -76,6 +79,16 @@ final class BoardStore: ObservableObject {
         try context.fetch(FetchDescriptor<TaskEntity>())
     }
 
+    private func allChecklistItems(_ context: ModelContext) throws -> [ChecklistItemEntity] {
+        try context.fetch(FetchDescriptor<ChecklistItemEntity>())
+    }
+
+    private func deleteChecklistItems(for taskIDs: Set<UUID>, context: ModelContext) throws {
+        for item in try allChecklistItems(context) where taskIDs.contains(item.taskID) {
+            context.delete(item)
+        }
+    }
+
     private func requiredTitle(_ title: String) throws -> String {
         let clean = title.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !clean.isEmpty else { throw StoreError.emptyTitle }
@@ -94,6 +107,10 @@ final class BoardStore: ObservableObject {
     func archivedTasks(in boardID: UUID) -> [TaskRecord] {
         tasks.filter { $0.boardID == boardID && $0.archivedAt != nil }
             .sorted { ($0.archivedAt ?? .distantPast) > ($1.archivedAt ?? .distantPast) }
+    }
+
+    func checklist(for taskID: UUID) -> [ChecklistItemRecord] {
+        checklistItems.filter { $0.taskID == taskID }.sorted { $0.position < $1.position }
     }
 
     @discardableResult
@@ -132,7 +149,9 @@ final class BoardStore: ObservableObject {
     @discardableResult
     func deleteBoard(_ id: UUID) -> Bool {
         transact { context in
-            for task in try allTasks(context).filter({ $0.boardID == id }) { context.delete(task) }
+            let ownedTasks = try allTasks(context).filter { $0.boardID == id }
+            try deleteChecklistItems(for: Set(ownedTasks.map(\.id)), context: context)
+            for task in ownedTasks { context.delete(task) }
             for column in try allColumns(context).filter({ $0.boardID == id }) { context.delete(column) }
             guard let board = try allBoards(context).first(where: { $0.id == id }) else { throw StoreError.notFound }
             context.delete(board)
@@ -204,6 +223,7 @@ final class BoardStore: ObservableObject {
                     try moveEntities(affected, to: destinationID, context: context)
                 }
             } else {
+                try deleteChecklistItems(for: Set(affected.map(\.id)), context: context)
                 for task in affected { context.delete(task) }
             }
             context.delete(column)
@@ -232,12 +252,44 @@ final class BoardStore: ObservableObject {
     }
 
     @discardableResult
-    func updateTask(_ id: UUID, title: String, details: String, colorID: String?) -> Bool {
+    func updateTask(_ id: UUID, title: String, details: String, colorID: String?, checklist: [ChecklistItemInput]) -> Bool {
         transact { context in
             guard let task = try allTasks(context).first(where: { $0.id == id }) else { throw StoreError.notFound }
-            task.title = try requiredTitle(title)
+            let cleanTitle = try requiredTitle(title)
+            let cleanedChecklist = try checklist.map { item in
+                ChecklistItemInput(id: item.id, title: try requiredTitle(item.title), isCompleted: item.isCompleted)
+            }
+            guard Set(cleanedChecklist.map(\.id)).count == cleanedChecklist.count else { throw StoreError.invalidChecklist }
+            let allItems = try allChecklistItems(context)
+            let existing = allItems.filter { $0.taskID == id }
+            let existingByID = Dictionary(uniqueKeysWithValues: existing.map { ($0.id, $0) })
+            let otherIDs = Set(allItems.filter { $0.taskID != id }.map(\.id))
+            guard cleanedChecklist.allSatisfy({ !otherIDs.contains($0.id) }) else { throw StoreError.invalidChecklist }
+            let retainedIDs = Set(cleanedChecklist.map(\.id))
+            for item in existing where !retainedIDs.contains(item.id) { context.delete(item) }
+            for (position, input) in cleanedChecklist.enumerated() {
+                if let item = existingByID[input.id] {
+                    item.title = input.title
+                    item.isCompleted = input.isCompleted
+                    item.position = position
+                } else {
+                    context.insert(ChecklistItemEntity(id: input.id, taskID: id, title: input.title, isCompleted: input.isCompleted, position: position))
+                }
+            }
+            task.title = cleanTitle
             task.details = details
             task.colorID = colorID
+            task.updatedAt = .now
+        }
+    }
+
+    func toggleChecklistItem(_ id: UUID) {
+        transact { context in
+            guard let item = try allChecklistItems(context).first(where: { $0.id == id }),
+                  let task = try allTasks(context).first(where: { $0.id == item.taskID && $0.archivedAt == nil }) else {
+                throw StoreError.notFound
+            }
+            item.isCompleted.toggle()
             task.updatedAt = .now
         }
     }
@@ -408,6 +460,7 @@ final class BoardStore: ObservableObject {
                 return GroupKey(columnID: columnID, completed: task.isCompleted)
             })
             let selectedIDs = Set(selected.map(\.id))
+            try deleteChecklistItems(for: selectedIDs, context: context)
             for task in selected { context.delete(task) }
             for key in groups {
                 normalize(all.filter { $0.columnID == key.columnID && $0.archivedAt == nil && $0.isCompleted == key.completed && !selectedIDs.contains($0.id) })
@@ -432,12 +485,14 @@ private enum StoreError: LocalizedError {
     case emptyTitle
     case notFound
     case invalidDestination
+    case invalidChecklist
 
     var errorDescription: String? {
         switch self {
         case .emptyTitle: "Название не может быть пустым."
         case .notFound: "Запись не найдена."
         case .invalidDestination: "Нельзя переместить задачу в выбранную колонку."
+        case .invalidChecklist: "Некорректный чек-лист задачи."
         }
     }
 }

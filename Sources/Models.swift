@@ -66,6 +66,23 @@ final class TaskEntity {
     }
 }
 
+@Model
+final class ChecklistItemEntity {
+    @Attribute(.unique) var id: UUID
+    var taskID: UUID
+    var title: String
+    var isCompleted: Bool
+    var position: Int
+
+    init(id: UUID = UUID(), taskID: UUID, title: String, isCompleted: Bool = false, position: Int) {
+        self.id = id
+        self.taskID = taskID
+        self.title = title
+        self.isCompleted = isCompleted
+        self.position = position
+    }
+}
+
 struct BoardRecord: Identifiable, Hashable {
     let id: UUID
     let title: String
@@ -125,5 +142,37 @@ struct TaskRecord: Identifiable, Hashable {
         archivedAt = entity.archivedAt
         createdAt = entity.createdAt
         updatedAt = entity.updatedAt
+    }
+}
+
+struct ChecklistItemRecord: Identifiable, Hashable {
+    let id: UUID
+    let taskID: UUID
+    let title: String
+    let isCompleted: Bool
+    let position: Int
+
+    init(_ entity: ChecklistItemEntity) {
+        id = entity.id
+        taskID = entity.taskID
+        title = entity.title
+        isCompleted = entity.isCompleted
+        position = entity.position
+    }
+}
+
+struct ChecklistItemInput: Identifiable, Equatable {
+    let id: UUID
+    var title: String
+    var isCompleted: Bool
+
+    init(id: UUID = UUID(), title: String, isCompleted: Bool = false) {
+        self.id = id
+        self.title = title
+        self.isCompleted = isCompleted
+    }
+
+    init(_ record: ChecklistItemRecord) {
+        self.init(id: record.id, title: record.title, isCompleted: record.isCompleted)
     }
 }

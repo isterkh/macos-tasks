@@ -402,33 +402,62 @@ struct BoardView: View {
             .padding(.leading, 5)
             .padding(.trailing, 3)
             VStack(alignment: .leading, spacing: 4) {
-                Text(task.title)
-                    .foregroundStyle(task.isCompleted ? .secondary : .primary)
-                    .lineLimit(3)
-                if !task.details.isEmpty {
-                    Text(linkedDescription(task.details, underlineLinks: commandPressed && hoveredDescriptionTaskID == task.id))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(2)
-                        .onHover { inside in
-                            hoveredDescriptionTaskID = inside ? task.id : nil
-                            if inside { commandPressed = NSEvent.modifierFlags.contains(.command) }
-                        }
-                        .environment(\.openURL, OpenURLAction { url in
-                            if NSEvent.modifierFlags.contains(.command) {
-                                NSWorkspace.shared.open(url)
-                            } else {
-                                handleTaskClick(task, column: column)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(task.title)
+                        .foregroundStyle(task.isCompleted ? .secondary : .primary)
+                        .lineLimit(3)
+                    if !task.details.isEmpty {
+                        Text(linkedDescription(task.details, underlineLinks: commandPressed && hoveredDescriptionTaskID == task.id))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                            .onHover { inside in
+                                hoveredDescriptionTaskID = inside ? task.id : nil
+                                if inside { commandPressed = NSEvent.modifierFlags.contains(.command) }
                             }
-                            return .handled
-                        })
+                            .environment(\.openURL, OpenURLAction { url in
+                                if NSEvent.modifierFlags.contains(.command) {
+                                    NSWorkspace.shared.open(url)
+                                } else {
+                                    handleTaskClick(task, column: column)
+                                }
+                                return .handled
+                            })
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
+                .onTapGesture { handleTaskClick(task, column: column) }
+                let checklist = store.checklist(for: task.id)
+                if !checklist.isEmpty {
+                    Text("\(checklist.filter(\.isCompleted).count) из \(checklist.count)")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .padding(.top, 3)
+                    ForEach(checklist) { item in
+                        Button {
+                            store.toggleChecklistItem(item.id)
+                        } label: {
+                            HStack(spacing: 5) {
+                                Image(systemName: item.isCompleted ? "checkmark.square.fill" : "square")
+                                    .foregroundStyle(item.isCompleted ? .green : .secondary)
+                                Text(item.title)
+                                    .font(.caption)
+                                    .foregroundStyle(item.isCompleted ? .secondary : .primary)
+                                    .lineLimit(2)
+                                Spacer(minLength: 0)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(item.isCompleted ? "Отметить пункт незавершённым: \(item.title)" : "Завершить пункт: \(item.title)")
+                    }
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.vertical, 10)
             .padding(.trailing, 10)
-            .contentShape(Rectangle())
-            .onTapGesture { handleTaskClick(task, column: column) }
         }
         .frame(minHeight: 42)
         .background(Color(nsColor: .controlBackgroundColor))
@@ -486,7 +515,7 @@ struct BoardView: View {
         } else {
             selectedIDs.removeAll()
             selectionAnchor = (column.id, task.id)
-            editorDraft = TaskDraft(task)
+            editorDraft = TaskDraft(task, checklist: store.checklist(for: task.id))
         }
     }
 
@@ -628,7 +657,10 @@ struct BoardView: View {
 
     private func saveDraft() {
         guard let draft = editorDraft else { return }
-        if store.updateTask(draft.id, title: draft.title, details: draft.details, colorID: draft.colorID) {
+        var checklist = draft.checklist
+        let pendingTitle = draft.newItemTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !pendingTitle.isEmpty { checklist.append(ChecklistItemInput(title: pendingTitle)) }
+        if store.updateTask(draft.id, title: draft.title, details: draft.details, colorID: draft.colorID, checklist: checklist) {
             editorDraft = nil
         }
     }
@@ -639,21 +671,26 @@ private struct TaskDraft: Equatable {
     let originalTitle: String
     let originalDetails: String
     let originalColorID: String?
+    let originalChecklist: [ChecklistItemInput]
     var title: String
     var details: String
     var colorID: String?
+    var checklist: [ChecklistItemInput]
+    var newItemTitle = ""
 
-    init(_ task: TaskRecord) {
+    init(_ task: TaskRecord, checklist: [ChecklistItemRecord]) {
         id = task.id
         originalTitle = task.title
         originalDetails = task.details
         originalColorID = task.colorID
+        originalChecklist = checklist.map(ChecklistItemInput.init)
         title = task.title
         details = task.details
         colorID = task.colorID
+        self.checklist = originalChecklist
     }
 
-    var isDirty: Bool { title != originalTitle || details != originalDetails || colorID != originalColorID }
+    var isDirty: Bool { title != originalTitle || details != originalDetails || colorID != originalColorID || checklist != originalChecklist || !newItemTitle.isEmpty }
 }
 
 private struct TaskEditor: View {
@@ -690,6 +727,7 @@ private struct TaskEditor: View {
 
             Divider()
 
+            ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 VStack(alignment: .leading, spacing: 7) {
                     fieldLabel("Название")
@@ -727,8 +765,38 @@ private struct TaskEditor: View {
                     fieldLabel("Цвет карточки")
                     PalettePicker(selection: $draft.colorID, allowsNone: true)
                 }
+
+                VStack(alignment: .leading, spacing: 9) {
+                    fieldLabel("Чек-лист")
+                    ForEach($draft.checklist) { $item in
+                        HStack(spacing: 8) {
+                            Toggle("", isOn: $item.isCompleted)
+                                .labelsHidden()
+                                .help("Завершить пункт")
+                            TextField("Пункт чек-листа", text: $item.title)
+                                .textFieldStyle(.roundedBorder)
+                            Button("Вверх", systemImage: "arrow.up") { moveItem(item.id, offset: -1) }
+                                .labelStyle(.iconOnly)
+                                .disabled(draft.checklist.first?.id == item.id)
+                            Button("Вниз", systemImage: "arrow.down") { moveItem(item.id, offset: 1) }
+                                .labelStyle(.iconOnly)
+                                .disabled(draft.checklist.last?.id == item.id)
+                            Button("Удалить", systemImage: "trash") { draft.checklist.removeAll { $0.id == item.id } }
+                                .labelStyle(.iconOnly)
+                        }
+                    }
+                    HStack {
+                        TextField("Новый пункт", text: $draft.newItemTitle)
+                            .textFieldStyle(.roundedBorder)
+                            .onSubmit(addItem)
+                        Button("Добавить", action: addItem)
+                            .disabled(draft.newItemTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    }
+                }
             }
             .padding(22)
+            }
+            .frame(maxHeight: 480)
 
             Divider()
 
@@ -738,7 +806,7 @@ private struct TaskEditor: View {
                 Button("Сохранить", action: onSave)
                     .buttonStyle(.borderedProminent)
                     .keyboardShortcut(.defaultAction)
-                    .disabled(draft.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .disabled(draft.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || draft.checklist.contains { $0.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty })
             }
             .padding(.horizontal, 22)
             .padding(.vertical, 14)
@@ -751,6 +819,19 @@ private struct TaskEditor: View {
         Text(title)
             .font(.caption.weight(.semibold))
             .foregroundStyle(.secondary)
+    }
+
+    private func addItem() {
+        let title = draft.newItemTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !title.isEmpty else { return }
+        draft.checklist.append(ChecklistItemInput(title: title))
+        draft.newItemTitle = ""
+    }
+
+    private func moveItem(_ id: UUID, offset: Int) {
+        guard let index = draft.checklist.firstIndex(where: { $0.id == id }),
+              draft.checklist.indices.contains(index + offset) else { return }
+        draft.checklist.swapAt(index, index + offset)
     }
 
     private func fieldBackground(focused: Bool) -> some View {

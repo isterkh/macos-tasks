@@ -2,6 +2,45 @@ import XCTest
 
 final class DailyBoardUITests: XCTestCase {
     @MainActor
+    func testChecklistCanBeEditedAndCheckedOnCard() {
+        let app = launchApp()
+        app.buttons["Новая доска"].click()
+        let boardName = app.textFields["Название"]
+        XCTAssertTrue(boardName.waitForExistence(timeout: 5))
+        boardName.typeText("Доска")
+        app.buttons["Сохранить"].click()
+        app.buttons["Колонка"].click()
+        let columnName = app.textFields["Название"]
+        XCTAssertTrue(columnName.waitForExistence(timeout: 5))
+        columnName.typeText("Сегодня")
+        app.buttons["Сохранить"].click()
+
+        let quickTask = app.textFields["Быстрая задача"]
+        XCTAssertTrue(quickTask.waitForExistence(timeout: 5))
+        quickTask.click()
+        quickTask.typeText("Задача\n")
+        let task = app.staticTexts["Задача"]
+        XCTAssertTrue(task.waitForExistence(timeout: 5))
+        task.click()
+
+        let newItem = app.textFields["Новый пункт"]
+        XCTAssertTrue(newItem.waitForExistence(timeout: 5))
+        newItem.click()
+        newItem.typeText("Шаг один")
+        app.buttons["Сохранить"].click()
+        let checklistRow = app.buttons["Завершить пункт: Шаг один"]
+        XCTAssertTrue(checklistRow.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["0 из 1"].exists)
+
+        checklistRow.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0.5))
+            .withOffset(CGVector(dx: 35, dy: 0)).click()
+        XCTAssertTrue(app.staticTexts["1 из 1"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.textFields["Новый пункт"].exists)
+        task.click()
+        XCTAssertTrue(app.textFields["Новый пункт"].waitForExistence(timeout: 5))
+    }
+
+    @MainActor
     func testMoveNewColumnToBeginning() {
         let app = launchApp()
 
