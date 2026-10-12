@@ -699,6 +699,10 @@ private struct TaskEditor: View {
     let onCancel: () -> Void
     let onEscape: () -> Void
     @FocusState private var focusedField: Field?
+    @State private var checklistRowFrames: [UUID: CGRect] = [:]
+    @State private var draggingChecklistItemID: UUID?
+    @State private var checklistDragLocation: CGPoint?
+    @State private var checklistDropIndex: Int?
 
     private enum Field: Hashable {
         case title
@@ -768,23 +772,62 @@ private struct TaskEditor: View {
 
                 VStack(alignment: .leading, spacing: 9) {
                     fieldLabel("Чек-лист")
-                    ForEach($draft.checklist) { $item in
-                        HStack(spacing: 8) {
-                            Toggle("", isOn: $item.isCompleted)
-                                .labelsHidden()
-                                .help("Завершить пункт")
-                            TextField("Пункт чек-листа", text: $item.title)
-                                .textFieldStyle(.roundedBorder)
-                            Button("Вверх", systemImage: "arrow.up") { moveItem(item.id, offset: -1) }
-                                .labelStyle(.iconOnly)
-                                .disabled(draft.checklist.first?.id == item.id)
-                            Button("Вниз", systemImage: "arrow.down") { moveItem(item.id, offset: 1) }
-                                .labelStyle(.iconOnly)
-                                .disabled(draft.checklist.last?.id == item.id)
-                            Button("Удалить", systemImage: "trash") { draft.checklist.removeAll { $0.id == item.id } }
-                                .labelStyle(.iconOnly)
+                    ZStack(alignment: .topLeading) {
+                        VStack(spacing: 6) {
+                            ForEach($draft.checklist) { $item in
+                                HStack(spacing: 8) {
+                                    Image(systemName: "line.3.horizontal")
+                                        .foregroundStyle(.secondary)
+                                        .frame(width: 24, height: 28)
+                                        .contentShape(Rectangle())
+                                        .help("Перетащить пункт")
+                                        .accessibilityLabel("Перетащить пункт: \(item.title)")
+                                        .gesture(
+                                            DragGesture(minimumDistance: 5, coordinateSpace: .named("checklist"))
+                                                .onChanged { value in updateChecklistDrag(item.id, at: value.location) }
+                                                .onEnded { value in finishChecklistDrag(item.id, at: value.location) }
+                                        )
+                                    Toggle("", isOn: $item.isCompleted)
+                                        .labelsHidden()
+                                        .help("Завершить пункт")
+                                    TextField("Пункт чек-листа", text: $item.title)
+                                        .textFieldStyle(.roundedBorder)
+                                    Button("Удалить", systemImage: "trash") { draft.checklist.removeAll { $0.id == item.id } }
+                                        .labelStyle(.iconOnly)
+                                }
+                                .opacity(draggingChecklistItemID == item.id ? 0.45 : 1)
+                                .background {
+                                    GeometryReader { geometry in
+                                        Color.clear.preference(key: ChecklistRowFrameKey.self,
+                                                               value: [item.id: geometry.frame(in: .named("checklist"))])
+                                    }
+                                }
+                                .overlay(alignment: .top) {
+                                    if checklistDropBeforeID == item.id {
+                                        Rectangle().fill(Color.accentColor).frame(height: 2).offset(y: -3)
+                                    }
+                                }
+                                .overlay(alignment: .bottom) {
+                                    if checklistDropAtEnd && draft.checklist.last(where: { $0.id != draggingChecklistItemID })?.id == item.id {
+                                        Rectangle().fill(Color.accentColor).frame(height: 2).offset(y: 3)
+                                    }
+                                }
+                            }
+                        }
+                        if let checklistDragLocation, let draggingChecklistItemID,
+                           let item = draft.checklist.first(where: { $0.id == draggingChecklistItemID }) {
+                            Label(item.title, systemImage: "line.3.horizontal")
+                                .font(.caption)
+                                .padding(8)
+                                .background(.regularMaterial)
+                                .clipShape(RoundedRectangle(cornerRadius: 6))
+                                .shadow(radius: 5)
+                                .position(checklistDragLocation)
+                                .allowsHitTesting(false)
                         }
                     }
+                    .coordinateSpace(name: "checklist")
+                    .onPreferenceChange(ChecklistRowFrameKey.self) { checklistRowFrames = $0 }
                     HStack {
                         TextField("Новый пункт", text: $draft.newItemTitle)
                             .textFieldStyle(.roundedBorder)
@@ -828,10 +871,42 @@ private struct TaskEditor: View {
         draft.newItemTitle = ""
     }
 
-    private func moveItem(_ id: UUID, offset: Int) {
-        guard let index = draft.checklist.firstIndex(where: { $0.id == id }),
-              draft.checklist.indices.contains(index + offset) else { return }
-        draft.checklist.swapAt(index, index + offset)
+    private var checklistDropBeforeID: UUID? {
+        guard let draggingChecklistItemID, let checklistDropIndex else { return nil }
+        let remaining = draft.checklist.filter { $0.id != draggingChecklistItemID }
+        return remaining.indices.contains(checklistDropIndex) ? remaining[checklistDropIndex].id : nil
+    }
+
+    private var checklistDropAtEnd: Bool {
+        guard draggingChecklistItemID != nil, let checklistDropIndex else { return false }
+        return checklistDropIndex == draft.checklist.count - 1 && draft.checklist.count > 1
+    }
+
+    private func checklistInsertionIndex(at point: CGPoint, movingID: UUID) -> Int? {
+        let remaining = draft.checklist.filter { $0.id != movingID }
+        let frames = remaining.compactMap { checklistRowFrames[$0.id] }
+        guard frames.count == remaining.count,
+              let first = frames.first, let last = frames.last,
+              point.x >= first.minX - 20, point.x <= first.maxX + 20,
+              point.y >= first.minY - 20, point.y <= last.maxY + 20 else { return nil }
+        return remaining.firstIndex { point.y < (checklistRowFrames[$0.id]?.midY ?? .infinity) } ?? remaining.count
+    }
+
+    private func updateChecklistDrag(_ id: UUID, at point: CGPoint) {
+        draggingChecklistItemID = id
+        checklistDragLocation = point
+        checklistDropIndex = checklistInsertionIndex(at: point, movingID: id)
+    }
+
+    private func finishChecklistDrag(_ id: UUID, at point: CGPoint) {
+        if let destination = checklistInsertionIndex(at: point, movingID: id),
+           let source = draft.checklist.firstIndex(where: { $0.id == id }) {
+            let item = draft.checklist.remove(at: source)
+            draft.checklist.insert(item, at: destination)
+        }
+        draggingChecklistItemID = nil
+        checklistDragLocation = nil
+        checklistDropIndex = nil
     }
 
     private func fieldBackground(focused: Bool) -> some View {
@@ -947,6 +1022,14 @@ private struct ColumnFrameKey: PreferenceKey {
 }
 
 private struct TaskFrameKey: PreferenceKey {
+    static var defaultValue: [UUID: CGRect] { [:] }
+
+    static func reduce(value: inout [UUID: CGRect], nextValue: () -> [UUID: CGRect]) {
+        value.merge(nextValue()) { _, new in new }
+    }
+}
+
+private struct ChecklistRowFrameKey: PreferenceKey {
     static var defaultValue: [UUID: CGRect] { [:] }
 
     static func reduce(value: inout [UUID: CGRect], nextValue: () -> [UUID: CGRect]) {

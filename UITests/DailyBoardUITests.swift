@@ -38,6 +38,31 @@ final class DailyBoardUITests: XCTestCase {
         XCTAssertFalse(app.textFields["Новый пункт"].exists)
         task.click()
         XCTAssertTrue(app.textFields["Новый пункт"].waitForExistence(timeout: 5))
+
+        let secondItem = app.textFields["Новый пункт"]
+        secondItem.click()
+        secondItem.typeText("Шаг два")
+        app.buttons["Добавить"].click()
+        let firstHandle = app.images["Перетащить пункт: Шаг один"]
+        let secondHandle = app.images["Перетащить пункт: Шаг два"]
+        XCTAssertTrue(firstHandle.waitForExistence(timeout: 5))
+        XCTAssertTrue(secondHandle.waitForExistence(timeout: 5))
+        firstHandle.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+            .press(forDuration: 0.3, thenDragTo: secondHandle.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.9)))
+
+        let firstField = app.textFields.matching(NSPredicate(format: "value == %@", "Шаг один")).firstMatch
+        let secondField = app.textFields.matching(NSPredicate(format: "value == %@", "Шаг два")).firstMatch
+        XCTAssertLessThan(secondField.frame.midY, firstField.frame.midY)
+        app.buttons["Сохранить"].click()
+        task.click()
+        XCTAssertLessThan(secondField.frame.midY, firstField.frame.midY)
+
+        firstHandle.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+            .press(forDuration: 0.3, thenDragTo: secondHandle.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.1)))
+        XCTAssertLessThan(firstField.frame.midY, secondField.frame.midY)
+        app.buttons["Отмена"].click()
+        task.click()
+        XCTAssertLessThan(secondField.frame.midY, firstField.frame.midY)
     }
 
     @MainActor
